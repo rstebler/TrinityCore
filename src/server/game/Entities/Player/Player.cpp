@@ -14461,7 +14461,7 @@ bool Player::CanSeeStartQuest(Quest const* quest)
 {
     if (!DisableMgr::IsDisabledFor(DISABLE_TYPE_QUEST, quest->GetQuestId(), this) && SatisfyQuestClass(quest, false) && SatisfyQuestRace(quest, false) &&
         SatisfyQuestSkill(quest, false) && SatisfyQuestExclusiveGroup(quest, false) && SatisfyQuestReputation(quest, false) &&
-        SatisfyQuestPreviousQuest(quest, false) && SatisfyQuestNextChain(quest, false) &&
+        SatisfyQuestPreviousQuest(quest, false) &&
         SatisfyQuestPrevChain(quest, false) && SatisfyQuestDay(quest, false) && SatisfyQuestWeek(quest, false) &&
         SatisfyQuestMonth(quest, false) && SatisfyQuestSeasonal(quest, false))
     {
@@ -14478,7 +14478,7 @@ bool Player::CanTakeQuest(Quest const* quest, bool msg)
         && SatisfyQuestClass(quest, msg) && SatisfyQuestRace(quest, msg) && SatisfyQuestLevel(quest, msg)
         && SatisfyQuestSkill(quest, msg) && SatisfyQuestReputation(quest, msg)
         && SatisfyQuestPreviousQuest(quest, msg) && SatisfyQuestTimed(quest, msg)
-        && SatisfyQuestNextChain(quest, msg) && SatisfyQuestPrevChain(quest, msg)
+        && SatisfyQuestPrevChain(quest, msg)
         && SatisfyQuestDay(quest, msg) && SatisfyQuestWeek(quest, msg)
         && SatisfyQuestMonth(quest, msg) && SatisfyQuestSeasonal(quest, msg)
         && SatisfyQuestConditions(quest, msg);
