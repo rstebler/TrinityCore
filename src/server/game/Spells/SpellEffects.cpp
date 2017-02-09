@@ -2199,7 +2199,7 @@ void Spell::EffectLearnSpell(SpellEffIndex effIndex)
 
     Player* player = unitTarget->ToPlayer();
 
-    uint32 spellToLearn = (m_spellInfo->Id == 483 || m_spellInfo->Id == 55884) ? damage : effectInfo->TriggerSpell;
+    uint32 spellToLearn = (m_spellInfo->Id == 483 || m_spellInfo->Id == 55884 || m_spellInfo->Id == 186228) ? damage : effectInfo->TriggerSpell;
     player->LearnSpell(spellToLearn, false);
 
     if (m_spellInfo->Id == 55884)

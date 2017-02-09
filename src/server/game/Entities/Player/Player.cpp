@@ -7867,7 +7867,7 @@ void Player::CastItemUseSpell(Item* item, SpellCastTargets const& targets, Objec
     // special learning case
     if (proto->Effects.size() >= 2)
     {
-        if (proto->Effects[0]->SpellID == 483 || proto->Effects[0]->SpellID == 55884)
+        if (proto->Effects[0]->SpellID == 483 || proto->Effects[0]->SpellID == 55884 || proto->Effects[0]->SpellID == 186228)
         {
             uint32 learn_spell_id = proto->Effects[0]->SpellID;
             uint32 learning_spell_id = proto->Effects[1]->SpellID;
@@ -11408,7 +11408,7 @@ InventoryResult Player::CanUseItem(ItemTemplate const* proto) const
 
     // learning (recipes, mounts, pets, etc.)
     if (proto->Effects.size() >= 2)
-        if (proto->Effects[0]->SpellID == 483 || proto->Effects[0]->SpellID == 55884)
+        if (proto->Effects[0]->SpellID == 483 || proto->Effects[0]->SpellID == 55884 || proto->Effects[0]->SpellID == 186228)
             if (HasSpell(proto->Effects[1]->SpellID))
                 return EQUIP_ERR_INTERNAL_BAG_ERROR;
 
