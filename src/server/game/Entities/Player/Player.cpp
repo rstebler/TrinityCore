@@ -14580,7 +14580,7 @@ bool Player::CanCompleteQuest(uint32 quest_id, bool checkExplorationFlag)
             if (qInfo->HasSpecialFlag(QUEST_SPECIAL_FLAGS_TIMED) && q_status.Timer == 0)
                 return false;
 
-            if (checkExplorationFlag && qInfo->HasSpecialFlag(QUEST_SPECIAL_FLAGS_EXPLORATION_OR_EVENT))
+            if (checkExplorationFlag && qInfo->GetObjectives().empty() && qInfo->HasSpecialFlag(QUEST_SPECIAL_FLAGS_EXPLORATION_OR_EVENT))
                 return false;
 
             return true;
