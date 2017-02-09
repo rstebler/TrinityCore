@@ -1830,6 +1830,12 @@ void ObjectMgr::LoadCreatures()
             continue;
         }
 
+        Map* map = sMapMgr->CreateBaseMap(data.mapid);
+        float groundZ = map->GetHeight(data.phaseMask, data.posX, data.posY, data.posZ);
+
+        if (groundZ <= VMAP_INVALID_HEIGHT)
+            TC_LOG_ERROR("sql.sql", "Creature (GUID: " UI64FMTD " Entry: %u MapID: %u) is under texture (X: %f Y: %f Z: %f).", guid, data.id, data.mapid, data.posX, data.posY, data.posZ);
+
         if (sWorld->getBoolConfig(CONFIG_CREATURE_CHECK_INVALID_POSITION))
             if (VMAP::IVMapManager* vmgr = VMAP::VMapFactory::createOrGetVMapManager())
             {
