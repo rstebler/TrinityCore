@@ -240,14 +240,14 @@ enum CriteriaFlags
 
 enum CriteriaTimedTypes
 {
-    CRITERIA_TIMED_TYPE_EVENT           = 1,    // Timer is started by internal event with id in timerStartEvent
-    CRITERIA_TIMED_TYPE_QUEST           = 2,    // Timer is started by accepting quest with entry in timerStartEvent
-    CRITERIA_TIMED_TYPE_SPELL_CASTER    = 5,    // Timer is started by casting a spell with entry in timerStartEvent
-    CRITERIA_TIMED_TYPE_SPELL_TARGET    = 6,    // Timer is started by being target of spell with entry in timerStartEvent
-    CRITERIA_TIMED_TYPE_CREATURE        = 7,    // Timer is started by killing creature with entry in timerStartEvent
-    CRITERIA_TIMED_TYPE_ITEM            = 9,    // Timer is started by using item with entry in timerStartEvent
-    CRITERIA_TIMED_TYPE_UNK             = 10,   // Unknown
-    CRITERIA_TIMED_TYPE_UNK_2           = 13,   // Unknown
+    CRITERIA_TIMED_TYPE_UNK             = 0,    // Unknown
+    CRITERIA_TIMED_TYPE_UNK_2           = 5,    // Unknown
+    CRITERIA_TIMED_TYPE_SPELL_CASTER    = 7,    // Timer is started by casting a spell with entry in timerStartEvent
+    CRITERIA_TIMED_TYPE_SPELL_TARGET    = 8,    // Timer is started by being target of spell with entry in timerStartEvent
+    CRITERIA_TIMED_TYPE_QUEST           = 9,    // Timer is started by accepting quest with entry in timerStartEvent
+    CRITERIA_TIMED_TYPE_CREATURE        = 10,   // Timer is started by killing creature with entry in timerStartEvent
+    CRITERIA_TIMED_TYPE_ITEM            = 12,   // Timer is started by using item with entry in timerStartEvent
+    CRITERIA_TIMED_TYPE_EVENT           = 13,   // Timer is started by internal event with id in timerStartEvent
     CRITERIA_TIMED_TYPE_SCENARIO_STAGE  = 14,   // Timer is started by changing stages in a scenario
 
     CRITERIA_TIMED_TYPE_MAX
