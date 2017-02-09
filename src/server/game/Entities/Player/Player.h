@@ -1522,7 +1522,7 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         bool CanSeeStartQuest(Quest const* quest);
         bool CanTakeQuest(Quest const* quest, bool msg);
         bool CanAddQuest(Quest const* quest, bool msg) const;
-        bool CanCompleteQuest(uint32 quest_id);
+        bool CanCompleteQuest(uint32 quest_id, bool checkExplorationFlag = true);
         bool CanCompleteRepeatableQuest(Quest const* quest);
         bool CanRewardQuest(Quest const* quest, bool msg);
         bool CanRewardQuest(Quest const* quest, uint32 reward, bool msg);

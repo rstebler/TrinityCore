@@ -14508,7 +14508,7 @@ bool Player::CanAddQuest(Quest const* quest, bool msg) const
     return true;
 }
 
-bool Player::CanCompleteQuest(uint32 quest_id)
+bool Player::CanCompleteQuest(uint32 quest_id, bool checkExplorationFlag)
 {
     if (quest_id)
     {
@@ -14578,6 +14578,9 @@ bool Player::CanCompleteQuest(uint32 quest_id)
             }
 
             if (qInfo->HasSpecialFlag(QUEST_SPECIAL_FLAGS_TIMED) && q_status.Timer == 0)
+                return false;
+
+            if (checkExplorationFlag && qInfo->HasSpecialFlag(QUEST_SPECIAL_FLAGS_EXPLORATION_OR_EVENT))
                 return false;
 
             return true;
@@ -16132,7 +16135,7 @@ void Player::AreaExploredOrEventHappens(uint32 questId)
                 SendQuestComplete(questId);
             }**/
         }
-        if (CanCompleteQuest(questId))
+        if (CanCompleteQuest(questId, false))
             CompleteQuest(questId);
     }
 }
