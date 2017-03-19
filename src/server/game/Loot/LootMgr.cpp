@@ -133,8 +133,8 @@ uint32 LootStore::LoadLootTable()
     // Clearing store (for reloading case)
     Clear();
 
-    //                                                  0     1            2               3         4         5             6
-    QueryResult result = WorldDatabase.PQuery("SELECT Entry, Item, Reference, Chance, QuestRequired, LootMode, GroupId, MinCount, MaxCount FROM %s", GetName());
+    //                                                  0     1        2        3      4         5            6         7        8         9
+    QueryResult result = WorldDatabase.PQuery("SELECT Entry, Item, Reference, Type, Chance, QuestRequired, LootMode, GroupId, MinCount, MaxCount FROM %s", GetName());
 
     if (!result)
         return 0;
@@ -148,12 +148,13 @@ uint32 LootStore::LoadLootTable()
         uint32 entry               = fields[0].GetUInt32();
         uint32 item                = fields[1].GetUInt32();
         uint32 reference           = fields[2].GetUInt32();
-        float  chance              = fields[3].GetFloat();
-        bool   needsquest          = fields[4].GetBool();
-        uint16 lootmode            = fields[5].GetUInt16();
-        uint8  groupid             = fields[6].GetUInt8();
-        uint8  mincount            = fields[7].GetUInt8();
-        uint8  maxcount            = fields[8].GetUInt8();
+        uint8  type                = fields[3].GetUInt8();
+        float  chance              = fields[4].GetFloat();
+        bool   needsquest          = fields[5].GetBool();
+        uint16 lootmode            = fields[6].GetUInt16();
+        uint8  groupid             = fields[7].GetUInt8();
+        uint8  mincount            = fields[8].GetUInt8();
+        uint8  maxcount            = fields[9].GetUInt8();
 
         if (groupid >= 1 << 7)                                     // it stored in 7 bit field
         {
@@ -161,7 +162,7 @@ uint32 LootStore::LoadLootTable()
             return 0;
         }
 
-        LootStoreItem* storeitem = new LootStoreItem(item, reference, chance, needsquest, lootmode, groupid, mincount, maxcount);
+        LootStoreItem* storeitem = new LootStoreItem(item, reference, type, chance, needsquest, lootmode, groupid, mincount, maxcount);
 
         if (!storeitem->IsValid(*this, entry))            // Validity checks
         {
@@ -291,9 +292,13 @@ bool LootStoreItem::Roll(bool rate) const
     if (reference > 0)                                   // reference case
         return roll_chance_f(chance* (rate ? sWorld->getRate(RATE_DROP_ITEM_REFERENCED) : 1.0f));
 
-    ItemTemplate const* pProto = sObjectMgr->GetItemTemplate(itemid);
+    float qualityModifier = 1.0f;
 
-    float qualityModifier = pProto && rate ? sWorld->getRate(qualityToRate[pProto->GetQuality()]) : 1.0f;
+    if (type == ITEM_LOOT_TYPE_ITEM) {
+        ItemTemplate const* pProto = sObjectMgr->GetItemTemplate(itemid);
+
+        qualityModifier = pProto && rate ? sWorld->getRate(qualityToRate[pProto->GetQuality()]) : 1.0f;
+    }
 
     return roll_chance_f(chance * qualityModifier);
 }
@@ -309,11 +314,30 @@ bool LootStoreItem::IsValid(LootStore const& store, uint32 entry) const
 
     if (reference == 0)                                      // item (quest or non-quest) entry, maybe grouped
     {
-        ItemTemplate const* proto = sObjectMgr->GetItemTemplate(itemid);
-        if (!proto)
+        switch (type)
         {
-            TC_LOG_ERROR("sql.sql", "Table '%s' Entry %d Item %d: item entry not listed in `item_template` - skipped", store.GetName(), entry, itemid);
-            return false;
+        case ITEM_LOOT_TYPE_ITEM:
+        {
+            ItemTemplate const* proto = sObjectMgr->GetItemTemplate(itemid);
+            if (!proto)
+            {
+                TC_LOG_ERROR("sql.sql", "Table '%s' Entry %d Item %d: item entry not listed in `item_template` - skipped", store.GetName(), entry, itemid);
+                return false;
+            }
+            break;
+        }
+        case ITEM_LOOT_TYPE_CURRENCY:
+        {
+            CurrencyTypesEntry const* proto = sCurrencyTypesStore.LookupEntry(itemid);
+            if (!proto)
+            {
+                TC_LOG_ERROR("sql.sql", "Table '%s' Entry %d Item %d: currency entry not listed in `currency_types` - skipped", store.GetName(), entry, itemid);
+                return false;
+            }
+            break;
+        }
+        default:
+            break;
         }
 
         if (chance == 0 && groupid == 0)                     // Zero chance is allowed for grouped entries only
@@ -356,11 +380,18 @@ bool LootStoreItem::IsValid(LootStore const& store, uint32 entry) const
 LootItem::LootItem(LootStoreItem const& li)
 {
     itemid      = li.itemid;
-    conditions   = li.conditions;
+    conditions  = li.conditions;
+    type        = li.type;
 
-    ItemTemplate const* proto = sObjectMgr->GetItemTemplate(itemid);
-    freeforall = proto && (proto->GetFlags() & ITEM_FLAG_MULTI_DROP);
-    follow_loot_rules = proto && (proto->FlagsCu & ITEM_FLAGS_CU_FOLLOW_LOOT_RULES);
+    freeforall = false;
+    follow_loot_rules = false;
+
+    if (type == ITEM_LOOT_TYPE_ITEM)
+    {
+        ItemTemplate const* proto = sObjectMgr->GetItemTemplate(itemid);
+        freeforall = proto && (proto->GetFlags() & ITEM_FLAG_MULTI_DROP);
+        follow_loot_rules = proto && (proto->FlagsCu & ITEM_FLAGS_CU_FOLLOW_LOOT_RULES);
+    }
 
     needs_quest = li.needs_quest;
 
@@ -382,28 +413,39 @@ bool LootItem::AllowedForPlayer(Player const* player) const
     if (!sConditionMgr->IsObjectMeetToConditions(const_cast<Player*>(player), conditions))
         return false;
 
-    ItemTemplate const* pProto = sObjectMgr->GetItemTemplate(itemid);
-    if (!pProto)
-        return false;
+    switch (type)
+    {
+    case ITEM_LOOT_TYPE_ITEM:
+    {
+        ItemTemplate const* pProto = sObjectMgr->GetItemTemplate(itemid);
+        if (!pProto)
+            return false;
 
-    // not show loot for players without profession or those who already know the recipe
-    if ((pProto->GetFlags() & ITEM_FLAG_HIDE_UNUSABLE_RECIPE) && (!player->HasSkill(pProto->GetRequiredSkill()) || player->HasSpell(pProto->Effects[1]->SpellID)))
-        return false;
+        // not show loot for players without profession or those who already know the recipe
+        if ((pProto->GetFlags() & ITEM_FLAG_HIDE_UNUSABLE_RECIPE) && (!player->HasSkill(pProto->GetRequiredSkill()) || player->HasSpell(pProto->Effects[1]->SpellID)))
+            return false;
 
-    // not show loot for not own team
-    if ((pProto->GetFlags2() & ITEM_FLAG2_FACTION_HORDE) && player->GetTeam() != HORDE)
-        return false;
+        // not show loot for not own team
+        if ((pProto->GetFlags2() & ITEM_FLAG2_FACTION_HORDE) && player->GetTeam() != HORDE)
+            return false;
 
-    if ((pProto->GetFlags2() & ITEM_FLAG2_FACTION_ALLIANCE) && player->GetTeam() != ALLIANCE)
-        return false;
+        if ((pProto->GetFlags2() & ITEM_FLAG2_FACTION_ALLIANCE) && player->GetTeam() != ALLIANCE)
+            return false;
 
-    // check quest requirements
-    if (!(pProto->FlagsCu & ITEM_FLAGS_CU_IGNORE_QUEST_STATUS) && ((needs_quest || (pProto->GetStartQuest() && player->GetQuestStatus(pProto->GetStartQuest()) != QUEST_STATUS_NONE)) && !player->HasQuestForItem(itemid)))
-        return false;
+        // check quest requirements
+        if (!(pProto->FlagsCu & ITEM_FLAGS_CU_IGNORE_QUEST_STATUS) && ((needs_quest || (pProto->GetStartQuest() && player->GetQuestStatus(pProto->GetStartQuest()) != QUEST_STATUS_NONE)) && !player->HasQuestForItem(itemid)))
+            return false;
 
-    // Don't show bind-when-picked-up unique items if player already has the maximum allowed quantity.
-    if (pProto->GetBonding() == BIND_ON_ACQUIRE && pProto->GetMaxCount() && player->GetItemCount(itemid, true) >= pProto->GetMaxCount())
+        // Don't show bind-when-picked-up unique items if player already has the maximum allowed quantity.
+        if (pProto->GetBonding() == BIND_ON_ACQUIRE && pProto->GetMaxCount() && player->GetItemCount(itemid, true) >= pProto->GetMaxCount())
+            return false;
+        break;
+    }
+    case ITEM_LOOT_TYPE_CURRENCY:
+        return true;
+    default:
         return false;
+    }
 
     return true;
 }
@@ -420,12 +462,21 @@ void LootItem::AddAllowedLooter(const Player* player)
 // Inserts the item into the loot (called by LootTemplate processors)
 void Loot::AddItem(LootStoreItem const& item)
 {
-    ItemTemplate const* proto = sObjectMgr->GetItemTemplate(item.itemid);
-    if (!proto)
-        return;
-
+    uint32 stacks = 1;
     uint32 count = urand(item.mincount, item.maxcount);
-    uint32 stacks = count / proto->GetMaxStackSize() + ((count % proto->GetMaxStackSize()) ? 1 : 0);
+    uint32 maxStackSize = std::numeric_limits<uint32>::max();
+    uint32 multiDrop = 0;
+    
+    if (item.type == ITEM_LOOT_TYPE_ITEM)
+    {
+        ItemTemplate const* proto = sObjectMgr->GetItemTemplate(item.itemid);
+        if (!proto)
+            return;
+
+        stacks = count / proto->GetMaxStackSize() + ((count % proto->GetMaxStackSize()) ? 1 : 0);
+        maxStackSize = proto->GetMaxStackSize();
+        multiDrop = proto->GetFlags() & ITEM_FLAG_MULTI_DROP;
+    }
 
     std::vector<LootItem>& lootItems = item.needs_quest ? quest_items : items;
     uint32 limit = item.needs_quest ? MAX_NR_QUEST_ITEMS : MAX_NR_LOOT_ITEMS;
@@ -433,7 +484,7 @@ void Loot::AddItem(LootStoreItem const& item)
     for (uint32 i = 0; i < stacks && lootItems.size() < limit; ++i)
     {
         LootItem generatedLoot(item);
-        generatedLoot.count = std::min(count, proto->GetMaxStackSize());
+        generatedLoot.count = std::min(count, maxStackSize);
         if (_difficultyBonusTreeMod)
         {
             std::set<uint32> bonusListIDs = sDB2Manager.GetItemBonusTree(generatedLoot.itemid, _difficultyBonusTreeMod);
@@ -441,12 +492,12 @@ void Loot::AddItem(LootStoreItem const& item)
         }
 
         lootItems.push_back(generatedLoot);
-        count -= proto->GetMaxStackSize();
+        count -= maxStackSize;
 
         // non-conditional one-player only items are counted here,
         // free for all items are counted in FillFFALoot(),
         // non-ffa conditionals are counted in FillNonQuestNonFFAConditionalLoot()
-        if (!item.needs_quest && item.conditions.empty() && !(proto->GetFlags() & ITEM_FLAG_MULTI_DROP))
+        if (!item.needs_quest && item.conditions.empty() && !multiDrop)
             ++unlootedCount;
     }
 }
@@ -498,9 +549,12 @@ bool Loot::FillLoot(uint32 lootId, LootStore const& store, Player* lootOwner, bo
 
         for (uint8 i = 0; i < items.size(); ++i)
         {
-            if (ItemTemplate const* proto = sObjectMgr->GetItemTemplate(items[i].itemid))
-                if (proto->GetQuality() < uint32(group->GetLootThreshold()))
-                    items[i].is_underthreshold = true;
+            if (items[i].type == ITEM_LOOT_TYPE_ITEM) {
+                if (ItemTemplate const* proto = sObjectMgr->GetItemTemplate(items[i].itemid))
+                    if (proto->GetQuality() < uint32(group->GetLootThreshold()))
+                        items[i].is_underthreshold = true;
+            } else
+                items[i].is_underthreshold = true;
         }
     }
     // ... for personal loot
@@ -541,7 +595,7 @@ void Loot::FillNotNormalLootFor(Player* player, bool presentAtLooting)
         else
             item = &quest_items[i-itemsSize];
 
-        if (!item->is_looted && item->freeforall && item->AllowedForPlayer(player))
+        if (!item->is_looted && item->freeforall && item->AllowedForPlayer(player) && item->type == ITEM_LOOT_TYPE_ITEM)
             if (ItemTemplate const* proto = sObjectMgr->GetItemTemplate(item->itemid))
                 if (proto->IsCurrencyToken())
                     player->StoreLootItem(i, this);
@@ -941,12 +995,31 @@ void Loot::BuildLootResponse(WorldPackets::Loot::LootResponse& packet, Player* v
                         // item shall not be displayed.
                         continue;
 
-                    WorldPackets::Loot::LootItemData lootItem;
-                    lootItem.LootListID = i + 1;
-                    lootItem.UIType = slot_type;
-                    lootItem.Quantity = items[i].count;
-                    lootItem.Loot.Initialize(items[i]);
-                    packet.Items.push_back(lootItem);
+                    switch (items[i].type)
+                    {
+                    case ITEM_LOOT_TYPE_ITEM:
+                    {
+                        WorldPackets::Loot::LootItemData lootItem;
+                        lootItem.LootListID = i + 1;
+                        lootItem.UIType = slot_type;
+                        lootItem.Quantity = items[i].count;
+                        lootItem.Loot.Initialize(items[i]);
+                        packet.Items.push_back(lootItem);
+                        break;
+                    }
+                    case ITEM_LOOT_TYPE_CURRENCY:
+                    {
+                        WorldPackets::Loot::LootCurrency lootCurrency;
+                        lootCurrency.CurrencyID = items[i].itemid;
+                        lootCurrency.Quantity = items[i].count;
+                        lootCurrency.LootListID = i + 1;
+                        lootCurrency.UIType = slot_type;
+                        packet.Currencies.push_back(lootCurrency);
+                        break;
+                    }
+                    default:
+                        break;
+                    }
                 }
             }
             break;
@@ -958,12 +1031,32 @@ void Loot::BuildLootResponse(WorldPackets::Loot::LootResponse& packet, Player* v
             {
                 if (!items[i].is_looted && !items[i].freeforall && items[i].conditions.empty() && items[i].AllowedForPlayer(viewer))
                 {
-                    WorldPackets::Loot::LootItemData lootItem;
-                    lootItem.LootListID = i + 1;
-                    lootItem.UIType = permission == OWNER_PERMISSION ? LOOT_SLOT_TYPE_OWNER : LOOT_SLOT_TYPE_ALLOW_LOOT;
-                    lootItem.Quantity = items[i].count;
-                    lootItem.Loot.Initialize(items[i]);
-                    packet.Items.push_back(lootItem);
+                    switch (items[i].type)
+                    {
+                    case ITEM_LOOT_TYPE_ITEM:
+                    {
+                        WorldPackets::Loot::LootItemData lootItem;
+                        lootItem.LootListID = i + 1;
+                        lootItem.UIType = permission == OWNER_PERMISSION ? LOOT_SLOT_TYPE_OWNER : LOOT_SLOT_TYPE_ALLOW_LOOT;
+                        lootItem.Quantity = items[i].count;
+                        lootItem.Loot.Initialize(items[i]);
+                        packet.Items.push_back(lootItem);
+                        break;
+                    }
+                    case ITEM_LOOT_TYPE_CURRENCY:
+                    {
+                        WorldPackets::Loot::LootCurrency lootCurrency;
+                        lootCurrency.CurrencyID = items[i].itemid;
+                        lootCurrency.Quantity = items[i].count;
+                        lootCurrency.LootListID = i + 1;
+                        lootCurrency.UIType = permission == OWNER_PERMISSION ? LOOT_SLOT_TYPE_OWNER : LOOT_SLOT_TYPE_ALLOW_LOOT;
+                        packet.Currencies.push_back(lootCurrency);
+                        break;
+                    }
+                    default:
+                        break;
+                    }
+
                 }
             }
             break;
@@ -983,15 +1076,19 @@ void Loot::BuildLootResponse(WorldPackets::Loot::LootResponse& packet, Player* v
             LootItem const& item = quest_items[qi->index];
             if (!qi->is_looted && !item.is_looted)
             {
-                WorldPackets::Loot::LootItemData lootItem;
-                lootItem.LootListID = items.size() + qi->index + 1;
-                lootItem.Quantity = item.count;
-                lootItem.Loot.Initialize(item);
-
-                if (item.follow_loot_rules)
+                switch (item.type)
                 {
-                    switch (permission)
+                case ITEM_LOOT_TYPE_ITEM:
+                {
+                    WorldPackets::Loot::LootItemData lootItem;
+                    lootItem.LootListID = items.size() + qi->index + 1;
+                    lootItem.Quantity = item.count;
+                    lootItem.Loot.Initialize(item);
+
+                    if (item.follow_loot_rules)
                     {
+                        switch (permission)
+                        {
                         case MASTER_PERMISSION:
                             lootItem.UIType = LOOT_SLOT_TYPE_MASTER;
                             break;
@@ -1007,12 +1104,49 @@ void Loot::BuildLootResponse(WorldPackets::Loot::LootResponse& packet, Player* v
                         default:
                             lootItem.UIType = slotType;
                             break;
+                        }
                     }
-                }
-                else
-                    lootItem.UIType = slotType;
+                    else
+                        lootItem.UIType = slotType;
 
-                packet.Items.push_back(lootItem);
+                    packet.Items.push_back(lootItem);
+                }
+                case ITEM_LOOT_TYPE_CURRENCY:
+                {
+                    WorldPackets::Loot::LootCurrency lootCurrency;
+                    lootCurrency.CurrencyID = item.itemid;
+                    lootCurrency.Quantity = item.count;
+                    lootCurrency.LootListID = items.size() + qi->index + 1;
+
+                    if (item.follow_loot_rules)
+                    {
+                        switch (permission)
+                        {
+                        case MASTER_PERMISSION:
+                            lootCurrency.UIType = LOOT_SLOT_TYPE_MASTER;
+                            break;
+                        case RESTRICTED_PERMISSION:
+                            lootCurrency.UIType = item.is_blocked ? LOOT_SLOT_TYPE_LOCKED : LOOT_SLOT_TYPE_ALLOW_LOOT;
+                            break;
+                        case GROUP_PERMISSION:
+                            if (!item.is_blocked)
+                                lootCurrency.UIType = LOOT_SLOT_TYPE_ALLOW_LOOT;
+                            else
+                                lootCurrency.UIType = LOOT_SLOT_TYPE_ROLL_ONGOING;
+                            break;
+                        default:
+                            lootCurrency.UIType = slotType;
+                            break;
+                        }
+                    }
+                    else
+                        lootCurrency.UIType = slotType;
+
+                    packet.Currencies.push_back(lootCurrency);
+                }
+                default:
+                    break;
+                }
             }
         }
     }
@@ -1027,12 +1161,31 @@ void Loot::BuildLootResponse(WorldPackets::Loot::LootResponse& packet, Player* v
             LootItem const& item = items[fi->index];
             if (!fi->is_looted && !item.is_looted)
             {
-                WorldPackets::Loot::LootItemData lootItem;
-                lootItem.LootListID = items.size() + fi->index + 1;
-                lootItem.UIType = slotType;
-                lootItem.Quantity = item.count;
-                lootItem.Loot.Initialize(item);
-                packet.Items.push_back(lootItem);
+                switch (item.type)
+                {
+                case ITEM_LOOT_TYPE_ITEM:
+                {
+                    WorldPackets::Loot::LootItemData lootItem;
+                    lootItem.LootListID = items.size() + fi->index + 1;
+                    lootItem.UIType = slotType;
+                    lootItem.Quantity = item.count;
+                    lootItem.Loot.Initialize(item);
+                    packet.Items.push_back(lootItem);
+                    break;
+                }
+                case ITEM_LOOT_TYPE_CURRENCY:
+                {
+                    WorldPackets::Loot::LootCurrency lootCurrency;
+                    lootCurrency.CurrencyID = item.itemid;
+                    lootCurrency.Quantity = item.count;
+                    lootCurrency.LootListID = items.size() + fi->index + 1;
+                    lootCurrency.UIType = slotType;
+                    packet.Currencies.push_back(lootCurrency);
+                    break;
+                }
+                default:
+                    break;
+                }
             }
         }
     }
@@ -1047,36 +1200,77 @@ void Loot::BuildLootResponse(WorldPackets::Loot::LootResponse& packet, Player* v
             LootItem const& item = items[ci->index];
             if (!ci->is_looted && !item.is_looted)
             {
-                WorldPackets::Loot::LootItemData lootItem;
-                lootItem.LootListID = items.size() + ci->index + 1;
-                lootItem.Quantity = item.count;
-                lootItem.Loot.Initialize(item);
-
-                if (item.follow_loot_rules)
+                switch (item.type)
                 {
-                    switch (permission)
-                    {
-                    case MASTER_PERMISSION:
-                        lootItem.UIType = LOOT_SLOT_TYPE_MASTER;
-                        break;
-                    case RESTRICTED_PERMISSION:
-                        lootItem.UIType = item.is_blocked ? LOOT_SLOT_TYPE_LOCKED : LOOT_SLOT_TYPE_ALLOW_LOOT;
-                        break;
-                    case GROUP_PERMISSION:
-                        if (!item.is_blocked)
-                            lootItem.UIType = LOOT_SLOT_TYPE_ALLOW_LOOT;
-                        else
-                            lootItem.UIType = LOOT_SLOT_TYPE_ROLL_ONGOING;
-                        break;
-                    default:
-                        lootItem.UIType = slotType;
-                        break;
-                    }
-                }
-                else
-                    lootItem.UIType = slotType;
+                case ITEM_LOOT_TYPE_ITEM:
+                {
+                    WorldPackets::Loot::LootItemData lootItem;
+                    lootItem.LootListID = items.size() + ci->index + 1;
+                    lootItem.Quantity = item.count;
+                    lootItem.Loot.Initialize(item);
 
-                packet.Items.push_back(lootItem);
+                    if (item.follow_loot_rules)
+                    {
+                        switch (permission)
+                        {
+                        case MASTER_PERMISSION:
+                            lootItem.UIType = LOOT_SLOT_TYPE_MASTER;
+                            break;
+                        case RESTRICTED_PERMISSION:
+                            lootItem.UIType = item.is_blocked ? LOOT_SLOT_TYPE_LOCKED : LOOT_SLOT_TYPE_ALLOW_LOOT;
+                            break;
+                        case GROUP_PERMISSION:
+                            if (!item.is_blocked)
+                                lootItem.UIType = LOOT_SLOT_TYPE_ALLOW_LOOT;
+                            else
+                                lootItem.UIType = LOOT_SLOT_TYPE_ROLL_ONGOING;
+                            break;
+                        default:
+                            lootItem.UIType = slotType;
+                            break;
+                        }
+                    }
+                    else
+                        lootItem.UIType = slotType;
+
+                    packet.Items.push_back(lootItem);
+                }
+                case ITEM_LOOT_TYPE_CURRENCY:
+                {
+                    WorldPackets::Loot::LootCurrency lootCurrency;
+                    lootCurrency.CurrencyID = item.itemid;
+                    lootCurrency.Quantity = item.count;
+                    lootCurrency.LootListID = items.size() + ci->index + 1;
+
+                    if (item.follow_loot_rules)
+                    {
+                        switch (permission)
+                        {
+                        case MASTER_PERMISSION:
+                            lootCurrency.UIType = LOOT_SLOT_TYPE_MASTER;
+                            break;
+                        case RESTRICTED_PERMISSION:
+                            lootCurrency.UIType = item.is_blocked ? LOOT_SLOT_TYPE_LOCKED : LOOT_SLOT_TYPE_ALLOW_LOOT;
+                            break;
+                        case GROUP_PERMISSION:
+                            if (!item.is_blocked)
+                                lootCurrency.UIType = LOOT_SLOT_TYPE_ALLOW_LOOT;
+                            else
+                                lootCurrency.UIType = LOOT_SLOT_TYPE_ROLL_ONGOING;
+                            break;
+                        default:
+                            lootCurrency.UIType = slotType;
+                            break;
+                        }
+                    }
+                    else
+                        lootCurrency.UIType = slotType;
+
+                    packet.Currencies.push_back(lootCurrency);
+                }
+                default:
+                    break;
+                }
             }
         }
     }

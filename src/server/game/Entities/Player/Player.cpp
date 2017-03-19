@@ -25429,66 +25429,88 @@ void Player::StoreLootItem(uint8 lootSlot, Loot* loot, AELootResult* aeResult/* 
         return;
     }
 
-    ItemPosCountVec dest;
-    InventoryResult msg = CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, item->itemid, item->count);
-    if (msg == EQUIP_ERR_OK)
+    switch (item->type)
     {
-        Item* newitem = StoreNewItem(dest, item->itemid, true, item->randomPropertyId, item->GetAllowedLooters(), item->BonusListIDs);
-
-        if (qitem)
+    case ITEM_LOOT_TYPE_ITEM:
+    {
+        ItemPosCountVec dest;
+        InventoryResult msg = CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, item->itemid, item->count);
+        if (msg == EQUIP_ERR_OK)
         {
-            qitem->is_looted = true;
-            //freeforall is 1 if everyone's supposed to get the quest item.
-            if (item->freeforall || loot->GetPlayerQuestItems().size() == 1)
-                SendNotifyLootItemRemoved(loot->GetGUID(), lootSlot);
+            Item* newitem = StoreNewItem(dest, item->itemid, true, item->randomPropertyId, item->GetAllowedLooters(), item->BonusListIDs);
+
+            if (qitem)
+            {
+                qitem->is_looted = true;
+                //freeforall is 1 if everyone's supposed to get the quest item.
+                if (item->freeforall || loot->GetPlayerQuestItems().size() == 1)
+                    SendNotifyLootItemRemoved(loot->GetGUID(), lootSlot);
+                else
+                    loot->NotifyQuestItemRemoved(qitem->index);
+            }
             else
-                loot->NotifyQuestItemRemoved(qitem->index);
+            {
+                if (ffaitem)
+                {
+                    //freeforall case, notify only one player of the removal
+                    ffaitem->is_looted = true;
+                    SendNotifyLootItemRemoved(loot->GetGUID(), lootSlot);
+                }
+                else
+                {
+                    //not freeforall, notify everyone
+                    if (conditem)
+                        conditem->is_looted = true;
+                    loot->NotifyItemRemoved(lootSlot);
+                }
+            }
+
+            //if only one person is supposed to loot the item, then set it to looted
+            if (!item->freeforall)
+                item->is_looted = true;
+
+            --loot->unlootedCount;
+
+            if (sObjectMgr->GetItemTemplate(item->itemid))
+                if (newitem->GetQuality() > ITEM_QUALITY_EPIC || (newitem->GetQuality() == ITEM_QUALITY_EPIC && newitem->GetItemLevel(this) >= MinNewsItemLevel))
+                    if (Guild* guild = GetGuild())
+                        guild->AddGuildNews(GUILD_NEWS_ITEM_LOOTED, GetGUID(), 0, item->itemid);
+
+            // if aeLooting then we must delay sending out item so that it appears properly stacked in chat
+            if (!aeResult)
+            {
+                SendNewItem(newitem, uint32(item->count), false, false, true);
+                UpdateCriteria(CRITERIA_TYPE_LOOT_ITEM, item->itemid, item->count);
+                UpdateCriteria(CRITERIA_TYPE_LOOT_TYPE, item->itemid, item->count, loot->loot_type);
+                UpdateCriteria(CRITERIA_TYPE_LOOT_EPIC_ITEM, item->itemid, item->count);
+            }
+            else
+                aeResult->Add(newitem, item->count, loot->loot_type);
+
+            // LootItem is being removed (looted) from the container, delete it from the DB.
+            if (!loot->containerID.IsEmpty())
+                loot->DeleteLootItemFromContainerItemDB(item->itemid);
         }
         else
-        {
-            if (ffaitem)
-            {
-                //freeforall case, notify only one player of the removal
-                ffaitem->is_looted = true;
-                SendNotifyLootItemRemoved(loot->GetGUID(), lootSlot);
-            }
-            else
-            {
-                //not freeforall, notify everyone
-                if (conditem)
-                    conditem->is_looted = true;
-                loot->NotifyItemRemoved(lootSlot);
-            }
-        }
-
-        //if only one person is supposed to loot the item, then set it to looted
-        if (!item->freeforall)
-            item->is_looted = true;
+            SendEquipError(msg, nullptr, nullptr, item->itemid);
+        break;
+    }
+    case ITEM_LOOT_TYPE_CURRENCY:
+        loot->NotifyItemRemoved(lootSlot);
+        item->is_looted = true;
 
         --loot->unlootedCount;
 
-        if (sObjectMgr->GetItemTemplate(item->itemid))
-            if (newitem->GetQuality() > ITEM_QUALITY_EPIC || (newitem->GetQuality() == ITEM_QUALITY_EPIC && newitem->GetItemLevel(this) >= MinNewsItemLevel))
-                if (Guild* guild = GetGuild())
-                    guild->AddGuildNews(GUILD_NEWS_ITEM_LOOTED, GetGUID(), 0, item->itemid);
-
-        // if aeLooting then we must delay sending out item so that it appears properly stacked in chat
-        if (!aeResult)
-        {
-            SendNewItem(newitem, uint32(item->count), false, false, true);
-            UpdateCriteria(CRITERIA_TYPE_LOOT_ITEM, item->itemid, item->count);
-            UpdateCriteria(CRITERIA_TYPE_LOOT_TYPE, item->itemid, item->count, loot->loot_type);
-            UpdateCriteria(CRITERIA_TYPE_LOOT_EPIC_ITEM, item->itemid, item->count);
-        }
-        else
-            aeResult->Add(newitem, item->count, loot->loot_type);
+        ModifyCurrency(item->itemid, item->count);
 
         // LootItem is being removed (looted) from the container, delete it from the DB.
         if (!loot->containerID.IsEmpty())
             loot->DeleteLootItemFromContainerItemDB(item->itemid);
+
+        break;
+    default:
+        break;
     }
-    else
-        SendEquipError(msg, nullptr, nullptr, item->itemid);
 }
 
 bool Player::CanFlyInZone(uint32 mapid, uint32 zone) const

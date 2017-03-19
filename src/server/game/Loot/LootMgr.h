@@ -135,18 +135,19 @@ struct TC_GAME_API LootStoreItem
 {
     uint32  itemid;                                         // id of the item
     uint32  reference;                                      // referenced TemplateleId
+    uint8   type;                                           // 1 item, 2 currency
     float   chance;                                         // chance to drop for both quest and non-quest items, chance to be used for refs
     uint16  lootmode;
     bool    needs_quest : 1;                                // quest drop (quest is required for item to drop)
     uint8   groupid     : 7;
     uint8   mincount;                                       // mincount for drop items
     uint8   maxcount;                                       // max drop count for the item mincount or Ref multiplicator
-    ConditionContainer conditions;                               // additional loot condition
+    ConditionContainer conditions;                          // additional loot condition
 
     // Constructor
     // displayid is filled in IsValid() which must be called after
-    LootStoreItem(uint32 _itemid, uint32 _reference, float _chance, bool _needs_quest, uint16 _lootmode, uint8 _groupid, uint8 _mincount, uint8 _maxcount)
-        : itemid(_itemid), reference(_reference), chance(_chance), lootmode(_lootmode),
+    LootStoreItem(uint32 _itemid, uint32 _reference, uint8 _type, float _chance, bool _needs_quest, uint16 _lootmode, uint8 _groupid, uint8 _mincount, uint8 _maxcount)
+        : itemid(_itemid), reference(_reference), type(_type), chance(_chance), lootmode(_lootmode),
         needs_quest(_needs_quest), groupid(_groupid), mincount(_mincount), maxcount(_maxcount)
          { }
 
@@ -157,6 +158,7 @@ struct TC_GAME_API LootStoreItem
 struct TC_GAME_API LootItem
 {
     uint32  itemid;
+    uint8   type;
     uint32  randomSuffix;
     ItemRandomEnchantmentId randomPropertyId;
     int32   upgradeId;

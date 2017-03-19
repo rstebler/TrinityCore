@@ -514,36 +514,54 @@ void WorldSession::HandleLootMasterGiveOpcode(WorldPacket& recvData)
 
     LootItem& item = slotid >= loot->items.size() ? loot->quest_items[slotid - loot->items.size()] : loot->items[slotid];
 
-    ItemPosCountVec dest;
-    InventoryResult msg = target->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, item.itemid, item.count);
-    if (item.follow_loot_rules && !item.AllowedForPlayer(target))
-        msg = EQUIP_ERR_CANT_EQUIP_EVER;
-    if (msg != EQUIP_ERR_OK)
+    switch (item.type)
     {
-        if (msg == EQUIP_ERR_ITEM_MAX_COUNT)
-            _player->SendLootError(lootguid, ObjectGuid::Empty, LOOT_ERROR_MASTER_UNIQUE_ITEM);
-        else if (msg == EQUIP_ERR_INV_FULL)
-            _player->SendLootError(lootguid, ObjectGuid::Empty, LOOT_ERROR_MASTER_INV_FULL);
-        else
-            _player->SendLootError(lootguid, ObjectGuid::Empty, LOOT_ERROR_MASTER_OTHER);
+    case ITEM_LOOT_TYPE_ITEM:
+    {
+        ItemPosCountVec dest;
+        InventoryResult msg = target->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, item.itemid, item.count);
+        if (item.follow_loot_rules && !item.AllowedForPlayer(target))
+            msg = EQUIP_ERR_CANT_EQUIP_EVER;
+        if (msg != EQUIP_ERR_OK)
+        {
+            if (msg == EQUIP_ERR_ITEM_MAX_COUNT)
+                _player->SendLootError(lootguid, ObjectGuid::Empty, LOOT_ERROR_MASTER_UNIQUE_ITEM);
+            else if (msg == EQUIP_ERR_INV_FULL)
+                _player->SendLootError(lootguid, ObjectGuid::Empty, LOOT_ERROR_MASTER_INV_FULL);
+            else
+                _player->SendLootError(lootguid, ObjectGuid::Empty, LOOT_ERROR_MASTER_OTHER);
 
-        target->SendEquipError(msg, NULL, NULL, item.itemid);
-        return;
+            target->SendEquipError(msg, NULL, NULL, item.itemid);
+            return;
+        }
+
+        // now move item from loot to target inventory
+        Item* newitem = target->StoreNewItem(dest, item.itemid, true, item.randomPropertyId, item.GetAllowedLooters(), item.BonusListIDs);
+        target->SendNewItem(newitem, uint32(item.count), false, false, true);
+        target->UpdateCriteria(CRITERIA_TYPE_LOOT_ITEM, item.itemid, item.count);
+        target->UpdateCriteria(CRITERIA_TYPE_LOOT_TYPE, item.itemid, item.count, loot->loot_type);
+        target->UpdateCriteria(CRITERIA_TYPE_LOOT_EPIC_ITEM, item.itemid, item.count);
+
+        // mark as looted
+        item.count = 0;
+        item.is_looted = true;
+
+        loot->NotifyItemRemoved(slotid);
+        --loot->unlootedCount;
     }
+    case ITEM_LOOT_TYPE_CURRENCY:
+        target->ModifyCurrency(item.itemid, item.count);
 
-    // now move item from loot to target inventory
-    Item* newitem = target->StoreNewItem(dest, item.itemid, true, item.randomPropertyId, item.GetAllowedLooters(), item.BonusListIDs);
-    target->SendNewItem(newitem, uint32(item.count), false, false, true);
-    target->UpdateCriteria(CRITERIA_TYPE_LOOT_ITEM, item.itemid, item.count);
-    target->UpdateCriteria(CRITERIA_TYPE_LOOT_TYPE, item.itemid, item.count, loot->loot_type);
-    target->UpdateCriteria(CRITERIA_TYPE_LOOT_EPIC_ITEM, item.itemid, item.count);
+        // mark as looted
+        item.count = 0;
+        item.is_looted = true;
 
-    // mark as looted
-    item.count = 0;
-    item.is_looted = true;
-
-    loot->NotifyItemRemoved(slotid);
-    --loot->unlootedCount;
+        loot->NotifyItemRemoved(slotid);
+        --loot->unlootedCount;
+        break;
+    default:
+        break;
+    }
 }
 
 void WorldSession::HandleSetLootSpecialization(WorldPackets::Loot::SetLootSpecialization& packet)

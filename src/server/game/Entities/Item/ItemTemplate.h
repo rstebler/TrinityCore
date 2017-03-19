@@ -297,6 +297,13 @@ enum ItemVendorType
     ITEM_VENDOR_TYPE_CURRENCY = 2,
 };
 
+enum ItemLootType
+{
+    ITEM_LOOT_TYPE_NONE = 0,
+    ITEM_LOOT_TYPE_ITEM = 1,
+    ITEM_LOOT_TYPE_CURRENCY = 2,
+};
+
 enum BAG_FAMILY_MASK
 {
     BAG_FAMILY_MASK_NONE                      = 0x00000000,

@@ -1,0 +1,13 @@
+ALTER TABLE `creature_loot_template` ADD COLUMN `Type` TINYINT(3) UNSIGNED NOT NULL DEFAULT '1' AFTER `Reference`;
+ALTER TABLE `disenchant_loot_template` ADD COLUMN `Type` TINYINT(3) UNSIGNED NOT NULL DEFAULT '1' AFTER `Reference`;
+ALTER TABLE `fishing_loot_template` ADD COLUMN `Type` TINYINT(3) UNSIGNED NOT NULL DEFAULT '1' AFTER `Reference`;
+ALTER TABLE `gameobject_loot_template` ADD COLUMN `Type` TINYINT(3) UNSIGNED NOT NULL DEFAULT '1' AFTER `Reference`;
+ALTER TABLE `item_legendary_loot_template` ADD COLUMN `Type` TINYINT(3) UNSIGNED NOT NULL DEFAULT '1' AFTER `Reference`;
+ALTER TABLE `item_loot_template` ADD COLUMN `Type` TINYINT(3) UNSIGNED NOT NULL DEFAULT '1' AFTER `Reference`;
+ALTER TABLE `mail_loot_template` ADD COLUMN `Type` TINYINT(3) UNSIGNED NOT NULL DEFAULT '1' AFTER `Reference`;
+ALTER TABLE `milling_loot_template` ADD COLUMN `Type` TINYINT(3) UNSIGNED NOT NULL DEFAULT '1' AFTER `Reference`;
+ALTER TABLE `pickpocketing_loot_template` ADD COLUMN `Type` TINYINT(3) UNSIGNED NOT NULL DEFAULT '1' AFTER `Reference`;
+ALTER TABLE `prospecting_loot_template` ADD COLUMN `Type` TINYINT(3) UNSIGNED NOT NULL DEFAULT '1' AFTER `Reference`;
+ALTER TABLE `reference_loot_template` ADD COLUMN `Type` TINYINT(3) UNSIGNED NOT NULL DEFAULT '1' AFTER `Reference`;
+ALTER TABLE `skinning_loot_template` ADD COLUMN `Type` TINYINT(3) UNSIGNED NOT NULL DEFAULT '1' AFTER `Reference`;
+ALTER TABLE `spell_loot_template` ADD COLUMN `Type` TINYINT(3) UNSIGNED NOT NULL DEFAULT '1' AFTER `Reference`;
