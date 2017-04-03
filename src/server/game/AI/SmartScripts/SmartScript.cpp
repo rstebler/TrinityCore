@@ -2524,7 +2524,7 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
                 if (!IsPlayer(*itr))
                     continue;
 
-                (*itr)->ToPlayer()->ModifyCurrency(e.action.currency.id, -e.action.currency.count);
+                (*itr)->ToPlayer()->ModifyCurrency(e.action.currency.id, -((int32)e.action.currency.count));
             }
 
             delete targets;
