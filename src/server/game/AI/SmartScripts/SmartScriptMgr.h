@@ -573,8 +573,10 @@ enum SMART_ACTION
     SMART_ACTION_PLAY_ANIMKIT                       = 128,    // id, type (0 = oneShot, 1 = aiAnim, 2 = meleeAnim, 3 = movementAnim)
     SMART_ACTION_SCENE_PLAY                         = 129,    // sceneId
     SMART_ACTION_SCENE_CANCEL                       = 130,    // sceneId
+    SMART_ACTION_ADD_CURRENCY                       = 131,    // currencyID, count
+    SMART_ACTION_REMOVE_CURRENCY                    = 132,    // currencyID, count
 
-    SMART_ACTION_END                                = 131
+    SMART_ACTION_END                                = 133
 };
 
 struct SmartAction
@@ -1099,6 +1101,12 @@ struct SmartAction
         {
             uint32 sceneId;
         } scene;
+
+        struct
+        {
+            uint32 id;
+            uint32 count;
+        } currency;
 
         //! Note for any new future actions
         //! All parameters must have type uint32

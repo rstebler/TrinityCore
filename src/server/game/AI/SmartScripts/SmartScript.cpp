@@ -2496,6 +2496,54 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
 
             break;
         }
+        case SMART_ACTION_ADD_CURRENCY:
+        {
+            const CurrencyTypesEntry* currencyType = sCurrencyTypesStore.LookupEntry(e.action.currency.id);
+            if (!currencyType)
+            {
+                TC_LOG_DEBUG("sql.sql", "SmartScript: Entry " SI64FMTD " SourceType %u, Event %u, Invalid currency for SMART_ACTION_REMOVE_CURRENCY, skipping", e.entryOrGuid, e.GetScriptType(), e.event_id, e.GetActionType());
+                break;
+            }
+
+            ObjectList* targets = GetTargets(e, unit);
+            if (!targets)
+                break;
+
+            for (ObjectList::const_iterator itr = targets->begin(); itr != targets->end(); ++itr)
+            {
+                if (!IsPlayer(*itr))
+                    continue;
+
+                (*itr)->ToPlayer()->ModifyCurrency(e.action.currency.id, e.action.currency.count);
+            }
+
+            delete targets;
+            break;
+        }
+        case SMART_ACTION_REMOVE_CURRENCY:
+        {
+            const CurrencyTypesEntry* currencyType = sCurrencyTypesStore.LookupEntry(e.action.currency.id);
+            if (!currencyType)
+            {
+                TC_LOG_DEBUG("sql.sql", "SmartScript: Entry " SI64FMTD " SourceType %u, Event %u, Invalid currency for SMART_ACTION_REMOVE_CURRENCY, skipping", e.entryOrGuid, e.GetScriptType(), e.event_id, e.GetActionType());
+                break;
+            }
+
+            ObjectList* targets = GetTargets(e, unit);
+            if (!targets)
+                break;
+
+            for (ObjectList::const_iterator itr = targets->begin(); itr != targets->end(); ++itr)
+            {
+                if (!IsPlayer(*itr))
+                    continue;
+
+                (*itr)->ToPlayer()->ModifyCurrency(e.action.currency.id, -e.action.currency.count);
+            }
+
+            delete targets;
+            break;
+        }
         default:
             TC_LOG_ERROR("sql.sql", "SmartScript::ProcessAction: Entry " SI64FMTD " SourceType %u, Event %u, Unhandled Action type %u", e.entryOrGuid, e.GetScriptType(), e.event_id, e.GetActionType());
             break;

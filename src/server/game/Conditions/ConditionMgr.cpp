@@ -500,6 +500,14 @@ bool Condition::Meets(ConditionSourceInfo& sourceInfo) const
             }
             break;
         }
+        case CONDITION_CURRENCY:
+        {
+            if (Player* player = object->ToPlayer())
+            {
+                condMeets = player->HasCurrency(ConditionValue1, ConditionValue2);
+            }
+            break;
+        }
         default:
             condMeets = false;
             break;
@@ -694,6 +702,9 @@ uint32 Condition::GetSearcherTypeMaskForCondition() const
             mask |= GRID_MAP_TYPE_MASK_PLAYER;
             break;
         case CONDITION_QUESTSTATE:
+            mask |= GRID_MAP_TYPE_MASK_PLAYER;
+            break;
+        case CONDITION_CURRENCY:
             mask |= GRID_MAP_TYPE_MASK_PLAYER;
             break;
         default:
@@ -2321,6 +2332,16 @@ bool ConditionMgr::isConditionTypeValid(Condition* cond) const
                 return false;
             }
             break;
+        case CONDITION_CURRENCY:
+        {
+            const CurrencyTypesEntry* currencyType = sCurrencyTypesStore.LookupEntry(cond->ConditionValue1);
+            if (!currencyType)
+            {
+                TC_LOG_ERROR("sql.sql", "%s Currency (%u) does not exist, skipped.", cond->ToString(true).c_str(), cond->ConditionValue1);
+                return false;
+            }
+            break;
+        }
         case CONDITION_IN_WATER:
         case CONDITION_CHARMED:
         case CONDITION_TAXI:
