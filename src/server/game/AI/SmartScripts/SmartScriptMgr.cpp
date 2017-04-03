@@ -1251,6 +1251,27 @@ bool SmartAIMgr::IsEventValid(SmartScriptHolder& e)
 
             break;
         }
+        case SMART_ACTION_ADD_CURRENCY:
+        {
+            if (!sCurrencyTypesStore.LookupEntry(e.action.currency.id))
+            {
+                TC_LOG_ERROR("sql.sql", "SmartScript: SMART_ACTION_ADD_CURRENCY uses currencyId %u but currency don't exist, skipped", e.action.currency.id);
+                return false;
+            }
+
+            break;
+        }
+        case SMART_ACTION_REMOVE_CURRENCY:
+        {
+            if (!sCurrencyTypesStore.LookupEntry(e.action.currency.id))
+            {
+                TC_LOG_ERROR("sql.sql", "SmartScript: SMART_ACTION_REMOVE_CURRENCY uses currencyId %u but currency don't exist, skipped", e.action.currency.id);
+                return false;
+            }
+
+            break;
+        }
+
         case SMART_ACTION_START_CLOSEST_WAYPOINT:
         case SMART_ACTION_FOLLOW:
         case SMART_ACTION_SET_ORIENTATION:

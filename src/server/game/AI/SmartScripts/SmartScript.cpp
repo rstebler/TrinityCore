@@ -2498,13 +2498,6 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
         }
         case SMART_ACTION_ADD_CURRENCY:
         {
-            const CurrencyTypesEntry* currencyType = sCurrencyTypesStore.LookupEntry(e.action.currency.id);
-            if (!currencyType)
-            {
-                TC_LOG_DEBUG("sql.sql", "SmartScript: Entry " SI64FMTD " SourceType %u, Event %u, Invalid currency for SMART_ACTION_ADD_CURRENCY, skipping", e.entryOrGuid, e.GetScriptType(), e.event_id, e.GetActionType());
-                break;
-            }
-
             ObjectList* targets = GetTargets(e, unit);
             if (!targets)
                 break;
@@ -2522,13 +2515,6 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
         }
         case SMART_ACTION_REMOVE_CURRENCY:
         {
-            const CurrencyTypesEntry* currencyType = sCurrencyTypesStore.LookupEntry(e.action.currency.id);
-            if (!currencyType)
-            {
-                TC_LOG_DEBUG("sql.sql", "SmartScript: Entry " SI64FMTD " SourceType %u, Event %u, Invalid currency for SMART_ACTION_REMOVE_CURRENCY, skipping", e.entryOrGuid, e.GetScriptType(), e.event_id, e.GetActionType());
-                break;
-            }
-
             ObjectList* targets = GetTargets(e, unit);
             if (!targets)
                 break;
