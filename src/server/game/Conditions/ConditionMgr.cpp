@@ -110,7 +110,8 @@ ConditionMgr::ConditionTypeInfo const ConditionMgr::StaticConditionTypeData[COND
     { "Charmed",             false, false, false },
     { "Pet type",             true, false, false },
     { "On Taxi",             false, false, false },
-    { "Quest state mask",     true,  true, false }
+    { "Quest state mask",     true,  true, false },
+    { "Currency",             true,  true, false }
 };
 
 // Checks if object meets the condition
