@@ -573,10 +573,30 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
 
             for (ObjectList::const_iterator itr = targets->begin(); itr != targets->end(); ++itr)
             {
-                if (!IsUnit(*itr))
-                    continue;
+                if (IsUnit(*itr))
+                {
+                    if (!(e.action.cast.castFlags & SMARTCAST_AURA_NOT_PRESENT) || !(*itr)->ToUnit()->HasAura(e.action.cast.spell))
+                    {
+                        if (e.action.cast.castFlags & SMARTCAST_INTERRUPT_PREVIOUS)
+                            tempLastInvoker->InterruptNonMeleeSpells(false);
 
-                if (!(e.action.cast.castFlags & SMARTCAST_AURA_NOT_PRESENT) || !(*itr)->ToUnit()->HasAura(e.action.cast.spell))
+                        TriggerCastFlags triggerFlag = TRIGGERED_NONE;
+                        if (e.action.cast.castFlags & SMARTCAST_TRIGGERED)
+                        {
+                            if (e.action.cast.triggerFlags)
+                                triggerFlag = TriggerCastFlags(e.action.cast.triggerFlags);
+                            else
+                                triggerFlag = TRIGGERED_FULL_MASK;
+                        }
+
+                        tempLastInvoker->CastSpell((*itr)->ToUnit(), e.action.cast.spell, triggerFlag);
+                        TC_LOG_DEBUG("scripts.ai", "SmartScript::ProcessAction:: SMART_ACTION_INVOKER_CAST: Invoker %s casts spell %u on target %s with castflags %u",
+                            tempLastInvoker->GetGUID().ToString().c_str(), e.action.cast.spell, (*itr)->GetGUID().ToString().c_str(), e.action.cast.castFlags);
+                    }
+                    else
+                        TC_LOG_DEBUG("scripts.ai", "Spell %u not cast because it has flag SMARTCAST_AURA_NOT_PRESENT and the target (%s) already has the aura", e.action.cast.spell, (*itr)->GetGUID().ToString().c_str());
+                }
+                else if (IsGameObject(*itr))
                 {
                     if (e.action.cast.castFlags & SMARTCAST_INTERRUPT_PREVIOUS)
                         tempLastInvoker->InterruptNonMeleeSpells(false);
@@ -590,12 +610,10 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
                             triggerFlag = TRIGGERED_FULL_MASK;
                     }
 
-                    tempLastInvoker->CastSpell((*itr)->ToUnit(), e.action.cast.spell, triggerFlag);
+                    tempLastInvoker->CastSpell((*itr)->ToGameObject(), e.action.cast.spell, triggerFlag);
                     TC_LOG_DEBUG("scripts.ai", "SmartScript::ProcessAction:: SMART_ACTION_INVOKER_CAST: Invoker %s casts spell %u on target %s with castflags %u",
                         tempLastInvoker->GetGUID().ToString().c_str(), e.action.cast.spell, (*itr)->GetGUID().ToString().c_str(), e.action.cast.castFlags);
                 }
-                else
-                    TC_LOG_DEBUG("scripts.ai", "Spell %u not cast because it has flag SMARTCAST_AURA_NOT_PRESENT and the target (%s) already has the aura", e.action.cast.spell, (*itr)->GetGUID().ToString().c_str());
             }
 
             delete targets;
