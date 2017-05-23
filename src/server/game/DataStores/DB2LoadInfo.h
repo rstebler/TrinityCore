@@ -3400,6 +3400,36 @@ struct QuestFactionRewardLoadInfo
     }
 };
 
+struct QuestLineLoadInfo
+{
+    static DB2LoadInfo const* Instance()
+    {
+        static DB2FieldMeta const fields[] =
+        {
+            { false, FT_INT, "ID" },
+            { false, FT_STRING, "Name" },
+        };
+        static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, QuestLineMeta::Instance(), HOTFIX_SEL_QUEST_LINE);
+        return &loadInfo;
+    }
+};
+
+struct QuestLineXQuestLoadInfo
+{
+    static DB2LoadInfo const* Instance()
+    {
+        static DB2FieldMeta const fields[] =
+        {
+            { false, FT_INT, "ID" },
+            { false, FT_SHORT, "QuestLineID" },
+            { false, FT_SHORT, "QuestID" },
+            { false, FT_BYTE, "QuestIndex" },
+        };
+        static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, QuestLineXQuestMeta::Instance(), HOTFIX_SEL_QUEST_LINE_X_QUEST);
+        return &loadInfo;
+    }
+};
+
 struct QuestMoneyRewardLoadInfo
 {
     static DB2LoadInfo const* Instance()
@@ -3436,6 +3466,42 @@ struct QuestPackageItemLoadInfo
             { false, FT_INT, "ItemCount" },
         };
         static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, QuestPackageItemMeta::Instance(), HOTFIX_SEL_QUEST_PACKAGE_ITEM);
+        return &loadInfo;
+    }
+};
+
+struct QuestPOIBlobLoadInfo
+{
+    static DB2LoadInfo const* Instance()
+    {
+        static DB2FieldMeta const fields[] =
+        {
+            { false, FT_INT, "ID" },
+            { false, FT_SHORT, "MapID" },
+            { false, FT_SHORT, "WorldMapAreaID" },
+            { false, FT_BYTE, "Unk1" },
+            { false, FT_BYTE, "Unk2" },
+            { false, FT_INT, "PlayerConditionID" },
+            { false, FT_INT, "QuestID" },
+            { false, FT_INT, "QuestObjectiveIndex" },
+        };
+        static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, QuestPOIBlobMeta::Instance(), HOTFIX_SEL_QUEST_POI_BLOB);
+        return &loadInfo;
+    }
+};
+
+struct QuestPOIPointLoadInfo
+{
+    static DB2LoadInfo const* Instance()
+    {
+        static DB2FieldMeta const fields[] =
+        {
+            { false, FT_INT, "BlobID" },
+            { false, FT_SHORT, "X" },
+            { false, FT_SHORT, "Y" },
+            { false, FT_INT, "ID" },
+        };
+        static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, QuestPOIPointMeta::Instance(), HOTFIX_SEL_QUEST_POI_POINT);
         return &loadInfo;
     }
 };

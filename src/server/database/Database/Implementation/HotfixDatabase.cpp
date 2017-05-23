@@ -667,12 +667,27 @@ void HotfixDatabaseConnection::DoPrepareStatements()
         "QuestRewFactionValue4, QuestRewFactionValue5, QuestRewFactionValue6, QuestRewFactionValue7, QuestRewFactionValue8, QuestRewFactionValue9, "
         "QuestRewFactionValue10 FROM quest_faction_reward ORDER BY ID DESC", CONNECTION_SYNCH);
 
+    // QuestLine.db2
+    PrepareStatement(HOTFIX_SEL_QUEST_LINE, "SELECT ID, Name"
+        " FROM quest_line ORDER BY ID DESC", CONNECTION_SYNCH);
+    PREPARE_LOCALE_STMT(HOTFIX_SEL_QUEST_LINE, "SELECT ID, Name_lang FROM quest_line_locale WHERE locale = ?", CONNECTION_SYNCH);
+
+    // QuestLineXQuest.db2
+    PrepareStatement(HOTFIX_SEL_QUEST_LINE_X_QUEST, "SELECT ID, QuestLineID, QuestID, QuestIndex"
+        " FROM quest_line_x_quest ORDER BY ID DESC", CONNECTION_SYNCH);
+
     // QuestMoneyReward.db2
     PrepareStatement(HOTFIX_SEL_QUEST_MONEY_REWARD, "SELECT ID, Money1, Money2, Money3, Money4, Money5, Money6, Money7, Money8, Money9, Money10"
         " FROM quest_money_reward ORDER BY ID DESC", CONNECTION_SYNCH);
 
     // QuestPackageItem.db2
     PrepareStatement(HOTFIX_SEL_QUEST_PACKAGE_ITEM, "SELECT ID, ItemID, QuestPackageID, FilterType, ItemCount FROM quest_package_item ORDER BY ID DESC", CONNECTION_SYNCH);
+
+    // QuestPOIBlob.db2
+    PrepareStatement(HOTFIX_SEL_QUEST_POI_BLOB, "SELECT ID, MapID, WorldMapAreaID, Unk1, Unk2, PlayerConditionID, QuestID, QuestObjectiveIndex FROM quest_poi_blob ORDER BY ID DESC", CONNECTION_SYNCH);
+
+    // QuestPOIPoint.db2
+    PrepareStatement(HOTFIX_SEL_QUEST_POI_POINT, "SELECT BlobID, X, Y, ID FROM quest_poi_point ORDER BY ID DESC", CONNECTION_SYNCH);
 
     // QuestSort.db2
     PrepareStatement(HOTFIX_SEL_QUEST_SORT, "SELECT ID, SortName, SortOrder FROM quest_sort ORDER BY ID DESC", CONNECTION_SYNCH);

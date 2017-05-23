@@ -2025,6 +2025,20 @@ struct QuestFactionRewardEntry
     int16 QuestRewFactionValue[10];
 };
 
+struct QuestLineEntry
+{
+    uint32 ID;
+    LocalizedString* Name;
+};
+
+struct QuestLineXQuestEntry
+{
+    uint32 ID;
+    uint16 QuestLineID;
+    uint16 QuestID;
+    uint8 QuestIndex;
+};
+
 struct QuestMoneyRewardEntry
 {
     uint32 ID;
@@ -2038,6 +2052,26 @@ struct QuestPackageItemEntry
     uint16 QuestPackageID;
     uint8 FilterType;
     uint32 ItemCount;
+};
+
+struct QuestPOIBlobEntry
+{
+    uint32 ID;
+    uint16 MapID;
+    uint16 WorldMapAreaID;
+    uint8 Unk1;
+    uint8 Unk2;
+    uint32 PlayerConditionID;
+    uint32 QuestID;
+    uint32 QuestObjectiveIndex;
+};
+
+struct QuestPOIPointEntry
+{
+    uint32 BlobID;
+    uint16 X;
+    uint16 Y;
+    uint32 ID;
 };
 
 struct QuestSortEntry

@@ -164,8 +164,12 @@ DB2Storage<PowerDisplayEntry>                   sPowerDisplayStore("PowerDisplay
 DB2Storage<PowerTypeEntry>                      sPowerTypeStore("PowerType.db2", PowerTypeLoadInfo::Instance());
 DB2Storage<PvpDifficultyEntry>                  sPvpDifficultyStore("PvpDifficulty.db2", PvpDifficultyLoadInfo::Instance());
 DB2Storage<QuestFactionRewardEntry>             sQuestFactionRewardStore("QuestFactionReward.db2", QuestFactionRewardLoadInfo::Instance());
+DB2Storage<QuestLineEntry>                      sQuestLineStore("QuestLine.db2", QuestLineLoadInfo::Instance());
+DB2Storage<QuestLineXQuestEntry>                sQuestLineXQuestStore("QuestLineXQuest.db2", QuestLineXQuestLoadInfo::Instance());
 DB2Storage<QuestMoneyRewardEntry>               sQuestMoneyRewardStore("QuestMoneyReward.db2", QuestMoneyRewardLoadInfo::Instance());
 DB2Storage<QuestPackageItemEntry>               sQuestPackageItemStore("QuestPackageItem.db2", QuestPackageItemLoadInfo::Instance());
+DB2Storage<QuestPOIBlobEntry>                   sQuestPOIBlobStore("QuestPOIBlob.db2", QuestPOIBlobLoadInfo::Instance());
+DB2Storage<QuestPOIPointEntry>                  sQuestPOIPointStore("QuestPOIPoint.db2", QuestPOIPointLoadInfo::Instance());
 DB2Storage<QuestSortEntry>                      sQuestSortStore("QuestSort.db2", QuestSortLoadInfo::Instance());
 DB2Storage<QuestV2Entry>                        sQuestV2Store("QuestV2.db2", QuestV2LoadInfo::Instance());
 DB2Storage<QuestXPEntry>                        sQuestXPStore("QuestXP.db2", QuestXpLoadInfo::Instance());
@@ -460,7 +464,11 @@ void DB2Manager::LoadStores(std::string const& dataPath, uint32 defaultLocale)
     LOAD_DB2(sPvpDifficultyStore);
     LOAD_DB2(sQuestFactionRewardStore);
     LOAD_DB2(sQuestMoneyRewardStore);
+    LOAD_DB2(sQuestLineStore);
+    LOAD_DB2(sQuestLineXQuestStore);
     LOAD_DB2(sQuestPackageItemStore);
+    LOAD_DB2(sQuestPOIBlobStore);
+    LOAD_DB2(sQuestPOIPointStore);
     LOAD_DB2(sQuestSortStore);
     LOAD_DB2(sQuestV2Store);
     LOAD_DB2(sQuestXPStore);
@@ -795,6 +803,12 @@ void DB2Manager::LoadStores(std::string const& dataPath, uint32 defaultLocale)
     {
         ASSERT(entry->BracketID < MAX_BATTLEGROUND_BRACKETS, "PvpDifficulty bracket (%d) exceeded max allowed value (%d)", entry->BracketID, MAX_BATTLEGROUND_BRACKETS);
     }
+
+    for (QuestLineXQuestEntry const* entry : sQuestLineXQuestStore)
+        _questsByQuestLine[entry->QuestLineID].push_back(entry);
+
+    for (auto itr = _questsByQuestLine.begin(); itr != _questsByQuestLine.end(); ++itr)
+        std::sort(itr->second.begin(), itr->second.end(), [](QuestLineXQuestEntry const* entry1, QuestLineXQuestEntry const* entry2) { return entry1->QuestIndex < entry2->QuestIndex; });
 
     for (QuestPackageItemEntry const* questPackageItem : sQuestPackageItemStore)
     {
@@ -1625,6 +1639,15 @@ PvpDifficultyEntry const* DB2Manager::GetBattlegroundBracketById(uint32 mapid, B
         if (PvpDifficultyEntry const* entry = sPvpDifficultyStore.LookupEntry(i))
             if (entry->MapID == mapid && entry->GetBracketId() == id)
                 return entry;
+
+    return nullptr;
+}
+
+std::vector<QuestLineXQuestEntry const*> const* DB2Manager::GetQuestsByQuestLine(uint32 questLineID) const
+{
+    auto itr = _questsByQuestLine.find(questLineID);
+    if (itr != _questsByQuestLine.end())
+        return &itr->second;
 
     return nullptr;
 }

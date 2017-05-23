@@ -15990,6 +15990,7 @@ void Player::SendQuestUpdate(uint32 questId)
 
     UpdateForQuestWorldObjects();
     SendUpdatePhasing();
+    UpdateAvailableQuestLines();
 }
 
 QuestGiverStatus Player::GetQuestDialogStatus(Object* questgiver)
@@ -16093,6 +16094,30 @@ QuestGiverStatus Player::GetQuestDialogStatus(Object* questgiver)
     }
 
     return result;
+}
+
+void Player::UpdateAvailableQuestLines()
+{
+    ClearDynamicValue(PLAYER_DYNAMIC_FIELD_AVAILABLE_QUEST_LINE_X_QUEST_ID);
+
+    for (QuestLineEntry const* questLineEntry : sQuestLineStore)
+    {
+        if (std::vector<QuestLineXQuestEntry const*> const* quests = sDB2Manager.GetQuestsByQuestLine(questLineEntry->ID))
+        {
+            for (QuestLineXQuestEntry const* questLineXQuestEntry : *quests)
+            {
+                Quest const* qInfo = sObjectMgr->GetQuestTemplate(questLineXQuestEntry->QuestID);
+                if (!qInfo)
+                    continue;
+
+                if (CanTakeQuest(qInfo, false))
+                {
+                    AddDynamicValue(PLAYER_DYNAMIC_FIELD_AVAILABLE_QUEST_LINE_X_QUEST_ID, questLineXQuestEntry->ID);
+                    break;
+                }
+            }
+        }
+    }
 }
 
 // not used in Trinity, but used in scripting code
@@ -17878,6 +17903,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SQLQueryHolder *holder)
     _LoadSeasonalQuestStatus(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_SEASONAL_QUEST_STATUS));
     _LoadMonthlyQuestStatus(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_MONTHLY_QUEST_STATUS));
     _LoadRandomBGStatus(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_RANDOM_BG));
+    UpdateAvailableQuestLines();
 
     // after spell and quest load
     InitTalentForLevel();
