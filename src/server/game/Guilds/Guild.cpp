@@ -228,8 +228,8 @@ void Guild::NewsLogEntry::WritePacket(WorldPackets::Guild::GuildNews& newsPacket
     newsEvent.Flags = int32(GetFlags());
     newsEvent.Type = int32(GetType());
 
-    //for (uint8 i = 0; i < 2; i++)
-    //    newsEvent.Data[i] =
+    for (uint8 i = 0; i < 2; i++)
+        newsEvent.Data[i] = 0;
 
     //newsEvent.MemberList.push_back(MemberGuid);
 
