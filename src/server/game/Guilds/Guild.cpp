@@ -233,7 +233,9 @@ void Guild::NewsLogEntry::WritePacket(WorldPackets::Guild::GuildNews& newsPacket
 
     //newsEvent.MemberList.push_back(MemberGuid);
 
-    if (GetType() == GUILD_NEWS_ITEM_LOOTED || GetType() == GUILD_NEWS_ITEM_CRAFTED || GetType() == GUILD_NEWS_ITEM_PURCHASED)
+    if (GetType() == GUILD_NEWS_GUILD_ACHIEVEMENT || GetType() == GUILD_NEWS_PLAYER_ACHIEVEMENT)
+        newsEvent.Data[0] = GetValue();
+    else if (GetType() == GUILD_NEWS_ITEM_LOOTED || GetType() == GUILD_NEWS_ITEM_CRAFTED || GetType() == GUILD_NEWS_ITEM_PURCHASED)
     {
         WorldPackets::Item::ItemInstance itemInstance;
         itemInstance.ItemID = GetValue();
