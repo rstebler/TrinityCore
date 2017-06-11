@@ -120,6 +120,27 @@ int32 ReputationMgr::GetReputation(FactionEntry const* factionEntry) const
     return 0;
 }
 
+int32 ReputationMgr::GetReputationCap(FactionEntry const* factionEntry) const
+{
+    if (!factionEntry)
+        return Reputation_Cap;
+
+    uint32 raceMask = _player->getRaceMask();
+    uint32 classMask = _player->getClassMask();
+    for (int i = 0; i < 4; i++)
+    {
+        if ((factionEntry->ReputationRaceMask[i] & raceMask ||
+            (factionEntry->ReputationRaceMask[i] == 0 &&
+                factionEntry->ReputationClassMask[i] != 0)) &&
+                (factionEntry->ReputationClassMask[i] & classMask ||
+                    factionEntry->ReputationClassMask[i] == 0))
+
+            return factionEntry->ReputationMax[i];
+    }
+
+    return Reputation_Cap;
+}
+
 ReputationRank ReputationMgr::GetRank(FactionEntry const* factionEntry) const
 {
     int32 reputation = GetReputation(factionEntry);
@@ -354,8 +375,10 @@ bool ReputationMgr::SetOneFactionReputation(FactionEntry const* factionEntry, in
             standing += itr->second.Standing + BaseRep;
         }
 
-        if (standing > Reputation_Cap)
-            standing = Reputation_Cap;
+        int32 ReputationCap = GetReputationCap(factionEntry);
+
+        if (standing > ReputationCap)
+            standing = ReputationCap;
         else if (standing < Reputation_Bottom)
             standing = Reputation_Bottom;
 
