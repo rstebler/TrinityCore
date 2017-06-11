@@ -394,6 +394,9 @@ bool ReputationMgr::SetOneFactionReputation(FactionEntry const* factionEntry, in
         if (new_rank <= REP_HOSTILE)
             SetAtWar(&itr->second, true);
 
+        if (old_rank <= REP_HOSTILE && new_rank >= REP_UNFRIENDLY)
+            SetAtWar(&itr->second, false);
+
         if (new_rank > old_rank)
             _sendFactionIncreased = true;
 
