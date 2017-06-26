@@ -4595,6 +4595,52 @@ class spell_gen_impatient_mind : public SpellScriptLoader
         }
 };
 
+
+class spell_gen_jandvik_reputation : public SpellScriptLoader
+{
+public:
+    spell_gen_jandvik_reputation() : SpellScriptLoader("spell_gen_jandvik_reputation") { }
+
+    class spell_gen_jandvik_reputation_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_gen_jandvik_reputation_SpellScript);
+
+        bool Load() override
+        {
+            return GetCaster()->GetTypeId() == TYPEID_PLAYER;
+        }
+
+        void HandleScript(SpellEffIndex effIndex)
+        {
+            Player* player = GetCaster()->ToPlayer();
+            uint32 factionId = GetSpellInfo()->GetEffect(effIndex)->MiscValue();
+            int32  repChange = GetSpellInfo()->GetEffect(effIndex)->CalcValue();
+
+            FactionEntry const* factionEntry = sFactionStore.LookupEntry(factionId);
+            if (!factionEntry)
+                return;
+
+            // Set neutral with Jandvik Vrykul
+            player->GetReputationMgr().SetReputation(factionEntry, repChange);
+
+            // Remove "At War"
+            if (FactionState const* repState = player->GetReputationMgr().GetState(factionEntry))
+                player->GetReputationMgr().SetAtWar(repState, false);
+        }
+
+        void Register() override
+        {
+            OnEffectHit += SpellEffectFn(spell_gen_jandvik_reputation_SpellScript::HandleScript, EFFECT_0, SPELL_EFFECT_208);
+        }
+    };
+
+    SpellScript* GetSpellScript() const override
+    {
+        return new spell_gen_jandvik_reputation_SpellScript();
+    }
+};
+
+
 void AddSC_generic_spell_scripts()
 {
     new spell_gen_absorb0_hitlimit1();
@@ -4699,4 +4745,5 @@ void AddSC_generic_spell_scripts()
     new spell_gen_azgalor_rain_of_fire_hellfire_citadel();
     new spell_gen_face_rage();
     new spell_gen_impatient_mind();
+    new spell_gen_jandvik_reputation("spell_gen_jandvik_reputation");
 }
