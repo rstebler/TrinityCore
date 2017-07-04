@@ -1406,6 +1406,10 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
         case SMART_ACTION_SUMMON_CREATURE:
         {
             WorldObject* summoner = GetBaseObjectOrUnit(unit);
+
+            if (e.action.summonCreature.invokerSummon)
+                summoner = GetLastInvoker();
+
             if (!summoner)
                 break;
 
