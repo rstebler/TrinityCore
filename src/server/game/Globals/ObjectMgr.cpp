@@ -2902,6 +2902,11 @@ void ObjectMgr::LoadItemTemplates()
             }
         }
 
+        // Items that have no specializations set can be used by everyone
+        for (auto& specs : itemTemplate.Specializations)
+            if (specs.count() == 0)
+                specs.set();
+
         ++sparseCount;
     }
 
@@ -4010,7 +4015,7 @@ void ObjectMgr::LoadQuests()
 
     // Load `quest_objectives`
     //                                   0   1        2     3             4         5       6      7       8                  9
-    result = WorldDatabase.Query("SELECT ID, QuestID, Type, StorageIndex, ObjectID, Amount, Flags, Flags2, ProgressBarWeight, Description FROM quest_objectives ORDER BY StorageIndex ASC");
+    result = WorldDatabase.Query("SELECT ID, QuestID, Type, StorageIndex, ObjectID, Amount, Flags, Flags2, ProgressBarWeight, Description FROM quest_objectives ORDER BY `Order` ASC, StorageIndex ASC");
 
     if (!result)
     {
