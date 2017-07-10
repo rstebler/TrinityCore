@@ -4546,7 +4546,7 @@ public:
         void HandleScript(SpellEffIndex effIndex)
         {
             Player* player = GetCaster()->ToPlayer();
-            uint32 factionId = GetSpellInfo()->GetEffect(effIndex)->MiscValue();
+            uint32 factionId = GetSpellInfo()->GetEffect(effIndex)->MiscValue;
             int32  repChange = GetSpellInfo()->GetEffect(effIndex)->CalcValue();
 
             FactionEntry const* factionEntry = sFactionStore.LookupEntry(factionId);
@@ -4555,10 +4555,6 @@ public:
 
             // Set neutral with Jandvik Vrykul
             player->GetReputationMgr().SetReputation(factionEntry, repChange);
-
-            // Remove "At War"
-            if (FactionState const* repState = player->GetReputationMgr().GetState(factionEntry))
-                player->GetReputationMgr().SetAtWar(repState, false);
         }
 
         void Register() override
@@ -4678,5 +4674,5 @@ void AddSC_generic_spell_scripts()
     new spell_gen_azgalor_rain_of_fire_hellfire_citadel();
     new spell_gen_face_rage();
     new spell_gen_impatient_mind();
-    new spell_gen_jandvik_reputation("spell_gen_jandvik_reputation");
+    new spell_gen_jandvik_reputation();
 }
