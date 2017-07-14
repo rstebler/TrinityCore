@@ -101,7 +101,8 @@ enum ConditionTypes
     CONDITION_TAXI                     = 46,                   // 0                0              0                  true if player is on taxi
     CONDITION_QUESTSTATE               = 47,                   // quest_id         state_mask     0                  true if player is in any of the provided quest states for the quest (1 = not taken, 2 = completed, 8 = in progress, 32 = failed, 64 = rewarded)
     CONDITION_QUEST_OBJECTIVE_COMPLETE = 48,                   // ID               0              0                  true if player has ID objective complete, but quest not yet rewarded
-    CONDITION_MAX                      = 49                    // MAX
+    CONDITION_TOY                      = 49,                   // itemID           0              0                  true if player has the toy itemID in the toy box
+    CONDITION_MAX                      = 50                    // MAX
 };
 
 /*! Documentation on implementing a new ConditionSourceType:

@@ -18,6 +18,7 @@
 
 #include "ConditionMgr.h"
 #include "AchievementMgr.h"
+#include "CollectionMgr.h"
 #include "Containers.h"
 #include "DatabaseEnv.h"
 #include "DB2Stores.h"
@@ -120,7 +121,8 @@ ConditionMgr::ConditionTypeInfo const ConditionMgr::StaticConditionTypeData[COND
     { "Pet type",             true, false, false },
     { "On Taxi",             false, false, false },
     { "Quest state mask",     true,  true, false },
-    { "Objective Complete",   true,  false, false }
+    { "Objective Complete",   true,  false, false },
+    { "Toy",                  true,  false, false },
 };
 
 // Checks if object meets the condition
@@ -522,6 +524,12 @@ bool Condition::Meets(ConditionSourceInfo& sourceInfo) const
             }
             break;
         }
+        case CONDITION_TOY:
+        {
+            if (Player* player = object->ToPlayer())
+                condMeets = player->GetSession()->GetCollectionMgr()->HasToy(ConditionValue1);
+            break;
+        }
         default:
             condMeets = false;
             break;
@@ -719,6 +727,9 @@ uint32 Condition::GetSearcherTypeMaskForCondition() const
             mask |= GRID_MAP_TYPE_MASK_PLAYER;
             break;
         case CONDITION_QUEST_OBJECTIVE_COMPLETE:
+            mask |= GRID_MAP_TYPE_MASK_PLAYER;
+            break;
+        case CONDITION_TOY:
             mask |= GRID_MAP_TYPE_MASK_PLAYER;
             break;
         default:
@@ -2355,6 +2366,16 @@ bool ConditionMgr::isConditionTypeValid(Condition* cond) const
                 return false;
             }
             break;
+        case CONDITION_TOY:
+        {
+            ItemTemplate const* proto = sObjectMgr->GetItemTemplate(cond->ConditionValue1);
+            if (!proto)
+            {
+                TC_LOG_ERROR("sql.sql", "%s Item (%u) does not exist, skipped.", cond->ToString(true).c_str(), cond->ConditionValue1);
+                return false;
+            }
+            break;
+        }
         case CONDITION_IN_WATER:
         case CONDITION_CHARMED:
         case CONDITION_TAXI:
