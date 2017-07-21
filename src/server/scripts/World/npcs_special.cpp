@@ -17,6 +17,7 @@
  */
 
 #include "ScriptMgr.h"
+#include "DB2Stores.h"
 #include "CellImpl.h"
 #include "CreatureTextMgr.h"
 #include "GameEventMgr.h"
@@ -2536,6 +2537,124 @@ public:
     }
 };
 
+
+class npc_flight_masters_whistle_mount : public CreatureScript
+{
+private:
+    enum Events
+    {
+        EVENT_ADD_AURA = 1,
+        EVENT_RIDE_VEHICLE = 2,
+        EVENT_FADE_TO_BLACK = 3,
+        EVENT_TELEPORT = 4,
+        EVENT_FLY_AWAY = 5,
+    };
+
+    enum Spells
+    {
+        SPELL_FLIGHT_MASTERS_WHISTLE_AURA = 227343,
+        SPELL_RIDE_VEHICLE = 52391,
+        SPELL_ESCAPE_THE_MENAGERIE_CREDIT = 226358,
+        SPELL_FADE_TO_BLACK = 89404,
+    };
+
+public:
+    npc_flight_masters_whistle_mount() : CreatureScript("npc_flight_masters_whistle_mount") { }
+
+    struct npc_flight_masters_whistle_mountAI : public ScriptedAI
+    {
+        npc_flight_masters_whistle_mountAI(Creature* creature) : ScriptedAI(creature)
+        {
+            playerGUID.Clear();
+        }
+
+        void IsSummonedBy(Unit* summoner) override
+        {
+            if (summoner->GetTypeId() == TYPEID_PLAYER)
+            {
+                playerGUID = summoner->GetGUID();
+                me->GetMotionMaster()->MovePoint(0, summoner->GetPositionX(), summoner->GetPositionY(), summoner->GetPositionZ());
+                events.ScheduleEvent(EVENT_ADD_AURA, 100); // Delay it because owner is not set yet.
+                events.ScheduleEvent(EVENT_RIDE_VEHICLE, 2000);
+            }
+        }
+
+        void PassengerBoarded(Unit* who, int8 /*seatId*/, bool apply) override
+        {
+            if (apply)
+            {
+                if (who->GetTypeId() == TYPEID_PLAYER)
+                {
+                    playerGUID = who->GetGUID();
+                    me->CastSpell(who, SPELL_ESCAPE_THE_MENAGERIE_CREDIT, true);
+                    events.ScheduleEvent(EVENT_FADE_TO_BLACK, 2000);
+                    events.ScheduleEvent(EVENT_TELEPORT, 4000);
+                    events.ScheduleEvent(EVENT_FLY_AWAY, 7000);
+                }
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            events.Update(diff);
+
+            while (uint32 eventId = events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case EVENT_ADD_AURA:
+                    {
+                        me->CastSpell(me, SPELL_FLIGHT_MASTERS_WHISTLE_AURA, true);
+                        break;
+                    }
+                    case EVENT_RIDE_VEHICLE:
+                    {
+                        me->StopMoving();
+                        if (Player* player = ObjectAccessor::GetPlayer(*me, playerGUID))
+                            player->CastSpell(me, SPELL_RIDE_VEHICLE, true);
+                        break;
+                    }
+                    case EVENT_FADE_TO_BLACK:
+                    {
+                        if (Player* player = ObjectAccessor::GetPlayer(*me, playerGUID))
+                            player->CastSpell(player, SPELL_FADE_TO_BLACK, true);
+                        break;
+                    }
+                    case EVENT_TELEPORT:
+                    {
+                        if (Player* player = ObjectAccessor::GetPlayer(*me, playerGUID))
+                        {
+                            uint32 taxiNodeId = player->GetNearestKnownTaxiNode();
+                            if (!taxiNodeId)
+                                taxiNodeId = 1774; // Fallback to Krasus' Landing
+
+                            if (TaxiNodesEntry const* taxiNode = sTaxiNodesStore.LookupEntry(taxiNodeId))
+                                me->NearTeleportTo(taxiNode->Pos.X, taxiNode->Pos.Y, taxiNode->Pos.Z + 2.f, player->GetOrientation());
+                        }
+                        break;
+                    }
+                    case EVENT_FLY_AWAY:
+                    {
+                        me->RemoveAurasByType(SPELL_AURA_CONTROL_VEHICLE);
+                        me->GetMotionMaster()->MovePoint(0, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ() + 50.f);
+                        me->DespawnOrUnsummon(3000);
+                        break;
+                    }
+                }
+            }
+        }
+
+    private:
+        EventMap events;
+        ObjectGuid playerGUID;
+    };
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_flight_masters_whistle_mountAI(creature);
+    }
+};
+
 void AddSC_npcs_special()
 {
     new npc_air_force_bots();
@@ -2560,4 +2679,5 @@ void AddSC_npcs_special()
     new npc_imp_in_a_ball();
     new npc_train_wrecker();
     new npc_argent_squire_gruntling();
+    new npc_flight_masters_whistle_mount();
 }

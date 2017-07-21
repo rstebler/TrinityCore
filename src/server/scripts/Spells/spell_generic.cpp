@@ -33,6 +33,7 @@
 #include "LFGMgr.h"
 #include "Log.h"
 #include "NPCPackets.h"
+#include "ObjectMgr.h"
 #include "Pet.h"
 #include "ReputationMgr.h"
 #include "SkillDiscovery.h"
@@ -4528,6 +4529,55 @@ class spell_gen_impatient_mind : public SpellScriptLoader
         }
 };
 
+class spell_gen_aura_flight_masters_whistle : public SpellScriptLoader
+{
+public:
+    spell_gen_aura_flight_masters_whistle() : SpellScriptLoader("spell_gen_aura_flight_masters_whistle") { }
+
+    class spell_gen_aura_flight_masters_whistle_AuraScript : public AuraScript
+    {
+        PrepareAuraScript(spell_gen_aura_flight_masters_whistle_AuraScript);
+
+        void OnApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            Unit* target = GetTarget();
+
+            if (Unit* owner = target->GetOwner())
+            {
+                if (owner->GetTypeId() != TYPEID_PLAYER)
+                    return;
+
+                Player* player = owner->ToPlayer();
+                uint32 taxiNodeId = player->GetNearestKnownTaxiNode();
+                if (!taxiNodeId)
+                    return;
+
+                if (uint32 mount_display_id = sObjectMgr->GetTaxiMountDisplayId(taxiNodeId, player->GetTeam()))
+                    target->SetDisplayId(mount_display_id);
+            }
+        }
+
+        void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            GetTarget()->RestoreDisplayId();
+        }
+
+        void Register() override
+        {
+            AfterEffectApply += AuraEffectRemoveFn(spell_gen_aura_flight_masters_whistle_AuraScript::OnApply, EFFECT_0, SPELL_AURA_TRANSFORM, AURA_EFFECT_HANDLE_REAL);
+            AfterEffectRemove += AuraEffectRemoveFn(spell_gen_aura_flight_masters_whistle_AuraScript::OnRemove, EFFECT_0, SPELL_AURA_TRANSFORM, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
+
+    AuraScript* GetAuraScript() const override
+    {
+        return new spell_gen_aura_flight_masters_whistle_AuraScript();
+    }
+};
+
+
+
+
 void AddSC_generic_spell_scripts()
 {
     new spell_gen_absorb0_hitlimit1();
@@ -4632,4 +4682,5 @@ void AddSC_generic_spell_scripts()
     new spell_gen_azgalor_rain_of_fire_hellfire_citadel();
     new spell_gen_face_rage();
     new spell_gen_impatient_mind();
+    new spell_gen_aura_flight_masters_whistle();
 }

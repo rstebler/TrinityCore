@@ -22180,6 +22180,44 @@ void Player::ContinueTaxiFlight() const
     GetSession()->SendDoFlight(mountDisplayId, path, startNode);
 }
 
+uint32 Player::GetNearestKnownTaxiNode()
+{
+    bool found = false;
+    float dist = 10000;
+    uint32 id = 0;
+
+    for (TaxiNodesEntry const* node : sTaxiNodesStore)
+    {
+        if (!node || node->MapID != GetMapId() || !m_taxi.IsTaximaskNodeKnown(node->ID))
+            continue;
+
+        uint8  field = (uint8)((node->ID - 1) / 8);
+        uint32 submask = 1 << ((node->ID - 1) % 8);
+
+        // skip not taxi network nodes
+        if ((sTaxiNodesMask[field] & submask) == 0)
+            continue;
+
+        float dist2 = (node->Pos.X - GetPositionX())*(node->Pos.X - GetPositionX()) + (node->Pos.Y - GetPositionY())*(node->Pos.Y - GetPositionY()) + (node->Pos.Z - GetPositionZ())*(node->Pos.Z - GetPositionZ());
+        if (found)
+        {
+            if (dist2 < dist)
+            {
+                dist = dist2;
+                id = node->ID;
+            }
+        }
+        else
+        {
+            found = true;
+            dist = dist2;
+            id = node->ID;
+        }
+    }
+
+    return id;
+}
+
 void Player::InitDataForForm(bool reapplyMods)
 {
     ShapeshiftForm form = GetShapeshiftForm();
