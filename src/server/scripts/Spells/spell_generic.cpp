@@ -4550,7 +4550,7 @@ public:
                 Player* player = owner->ToPlayer();
                 uint32 taxiNodeId = player->GetNearestKnownTaxiNode();
                 if (!taxiNodeId)
-                    return;
+                    taxiNodeId = 1774; // Fallback to Krasus' Landing
 
                 if (uint32 mount_display_id = sObjectMgr->GetTaxiMountDisplayId(taxiNodeId, player->GetTeam()))
                     target->SetDisplayId(mount_display_id);
