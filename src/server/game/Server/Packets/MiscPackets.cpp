@@ -662,3 +662,23 @@ void WorldPackets::Misc::MountSetFavorite::Read()
     _worldPacket >> MountSpellID;
     IsFavorite = _worldPacket.ReadBit();
 }
+
+void WorldPackets::Misc::AdventureJournalStartQuest::Read()
+{
+    _worldPacket >> QuestID;
+}
+
+void WorldPackets::Misc::QueryAdventureMapPOI::Read()
+{
+    _worldPacket >> AdventureMapPOIID;
+}
+
+WorldPacket const* WorldPackets::Misc::QueryAdventureMapPOIResponse::Write()
+{
+    _worldPacket << uint32(AdventureMapPOIID);
+    _worldPacket.WriteBit(Available);
+
+    _worldPacket.FlushBits();
+
+    return &_worldPacket;
+}

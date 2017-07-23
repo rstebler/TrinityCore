@@ -466,6 +466,8 @@ namespace WorldPackets
         class SetTaxiBenchmarkMode;
         class MountSetFavorite;
         class PvpPrestigeRankUp;
+        class AdventureJournalStartQuest;
+        class QueryAdventureMapPOI;
     }
 
     namespace Movement
@@ -1713,7 +1715,11 @@ class TC_GAME_API WorldSession
         void HandlePvpPrestigeRankUp(WorldPackets::Misc::PvpPrestigeRankUp& /*pvpPrestigeRankUp*/);
 
         // Adventure Journal & Adventure Map
+        void HandleAdventureJournalStartQuestOpcode(WorldPackets::Misc::AdventureJournalStartQuest& adventureJournalStartQuest);
+        void HandleQueryAdventureMapPOI(WorldPackets::Misc::QueryAdventureMapPOI& queryAdventureMapPOI);
+
         void SendShowAdventureMap(ObjectGuid guid);
+        void SendAdventureMapPOIResponse(uint32 adventureMapPOIID);
 
         union ConnectToKey
         {

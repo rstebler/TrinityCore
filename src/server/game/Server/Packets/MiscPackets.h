@@ -874,6 +874,37 @@ namespace WorldPackets
 
             void Read() override { }
         };
+
+        class AdventureJournalStartQuest final : public ClientPacket
+        {
+        public:
+            AdventureJournalStartQuest(WorldPacket&& packet) : ClientPacket(CMSG_ADVENTURE_JOURNAL_START_QUEST, std::move(packet)) { }
+
+            void Read() override;
+
+            uint32 QuestID = 0;
+        };
+
+        class QueryAdventureMapPOI final : public ClientPacket
+        {
+        public:
+            QueryAdventureMapPOI(WorldPacket&& packet) : ClientPacket(CMSG_QUERY_ADVENTURE_MAP_POI, std::move(packet)) { }
+
+            void Read() override;
+
+            uint32 AdventureMapPOIID = 0;
+        };
+
+        class QueryAdventureMapPOIResponse final : public ServerPacket
+        {
+        public:
+            QueryAdventureMapPOIResponse() : ServerPacket(SMSG_QUERY_ADVENTURE_MAP_POI_RESPONSE, 4 + 1) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 AdventureMapPOIID = 0;
+            bool Available = false;
+        };
     }
 }
 

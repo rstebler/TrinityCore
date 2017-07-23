@@ -1168,3 +1168,57 @@ void WorldSession::HandlePvpPrestigeRankUp(WorldPackets::Misc::PvpPrestigeRankUp
     if (_player->CanPrestige())
         _player->Prestige();
 }
+
+void WorldSession::HandleAdventureJournalStartQuestOpcode(WorldPackets::Misc::AdventureJournalStartQuest& adventureJournalStartQuest)
+{
+    uint32 questID = adventureJournalStartQuest.QuestID;
+    bool validQuest = false;
+    for (DBStorageIterator<AdventureMapPOIEntry> itr = sAdventureMapPOIStore.begin(); itr != sAdventureMapPOIStore.end(); ++itr)
+    {
+        if (itr->Type == 1 && itr->QuestID == questID)
+        {
+            validQuest = true;
+            break;
+        }
+    }
+
+    if (!validQuest)
+        return;
+
+    if (Quest const* quest = sObjectMgr->GetQuestTemplate(questID))
+    {
+        if (_player->CanTakeQuest(quest, true) && _player->CanAddQuest(quest, true))
+            _player->AddQuestAndCheckCompletion(quest, _player);
+    }
+}
+
+void WorldSession::HandleQueryAdventureMapPOI(WorldPackets::Misc::QueryAdventureMapPOI& queryAdventureMapPOI)
+{
+    SendAdventureMapPOIResponse(queryAdventureMapPOI.AdventureMapPOIID);
+}
+
+void WorldSession::SendAdventureMapPOIResponse(uint32 adventureMapPOIID)
+{
+    WorldPackets::Misc::QueryAdventureMapPOIResponse packet;
+    packet.AdventureMapPOIID = adventureMapPOIID;
+
+    uint32 questID = 0;
+
+    if (AdventureMapPOIEntry const* adventureMapPOIEntry = sAdventureMapPOIStore.LookupEntry(adventureMapPOIID))
+    {
+        switch (adventureMapPOIEntry->Type)
+        {
+        case 1:
+            questID = adventureMapPOIEntry->QuestID;
+            break;
+        default:
+            questID = 0;
+            break;
+        }
+    }
+
+    if (Quest const* quest = sObjectMgr->GetQuestTemplate(questID))
+        packet.Available = _player->CanTakeQuest(quest, false);
+
+    SendPacket(packet.Write());
+}
