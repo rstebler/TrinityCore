@@ -45,6 +45,24 @@ struct AchievementEntry
     uint32 IconFileDataID;
 };
 
+struct AdventureMapPOIEntry
+{
+    uint32 ID;
+    DBCPosition2D Pos;
+    uint32 Unk1;
+    LocalizedString* Name;
+    LocalizedString* Description;
+    uint8 Type;
+    uint32 PlayerConditionID;
+    uint32 QuestID;
+    uint32 Unk2;
+    uint32 UiTextureAtlasMemberID;
+    uint32 Unk3;
+    uint32 WorldMapAreaID;
+    uint32 Unk4;
+    uint32 AreaTableID;
+};
+
 struct AnimKitEntry
 {
     uint32 ID;

@@ -36,6 +36,11 @@ void HotfixDatabaseConnection::DoPrepareStatements()
         "CriteriaTree, Faction, Points, MinimumCriteria, ID, IconFileDataID FROM achievement ORDER BY ID DESC", CONNECTION_SYNCH);
     PREPARE_LOCALE_STMT(HOTFIX_SEL_ACHIEVEMENT, "SELECT ID, Title_lang, Description_lang, Reward_lang FROM achievement_locale WHERE locale = ?", CONNECTION_SYNCH);
 
+    // AdventureMapPOI.db2
+    PrepareStatement(HOTFIX_SEL_ADVENTURE_MAP_POI, "SELECT ID, PosX, PosY, Unk1, Name, Description, Type, PlayerConditionID, QuestID, Unk2, "
+        "UiTextureAtlasMemberID, Unk3, WorldMapAreaID, Unk4, AreaTableID FROM adventure_map_poi ORDER BY ID DESC", CONNECTION_SYNCH);
+    PREPARE_LOCALE_STMT(HOTFIX_SEL_ADVENTURE_MAP_POI, "SELECT ID, Name_lang, Description_lang FROM adventure_map_poi_locale WHERE locale = ?", CONNECTION_SYNCH);
+
     // AnimKit.db2
     PrepareStatement(HOTFIX_SEL_ANIM_KIT, "SELECT ID, OneShotDuration, OneShotStopAnimKitID, LowDefAnimKitID FROM anim_kit ORDER BY ID DESC", CONNECTION_SYNCH);
 
