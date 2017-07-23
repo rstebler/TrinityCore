@@ -162,6 +162,16 @@ namespace WorldPackets
             ObjectGuid Guid;
         };
 
+        class ShowAdventureMap final : public ServerPacket
+        {
+        public:
+            ShowAdventureMap() : ServerPacket(SMSG_SHOW_ADVENTURE_MAP, 16) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid Guid;
+        };
+
         class PlayerTabardVendorActivate final : public ServerPacket
         {
         public:

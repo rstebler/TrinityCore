@@ -124,6 +124,13 @@ WorldPacket const* WorldPackets::NPC::ShowBank::Write()
     return &_worldPacket;
 }
 
+WorldPacket const* WorldPackets::NPC::ShowAdventureMap::Write()
+{
+    _worldPacket << Guid;
+
+    return &_worldPacket;
+}
+
 void WorldPackets::NPC::GossipSelectOption::Read()
 {
     _worldPacket >> GossipUnit;

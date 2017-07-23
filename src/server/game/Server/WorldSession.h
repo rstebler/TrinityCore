@@ -1712,6 +1712,9 @@ class TC_GAME_API WorldSession
         // Honor
         void HandlePvpPrestigeRankUp(WorldPackets::Misc::PvpPrestigeRankUp& /*pvpPrestigeRankUp*/);
 
+        // Adventure Journal & Adventure Map
+        void SendShowAdventureMap(ObjectGuid guid);
+
         union ConnectToKey
         {
             struct

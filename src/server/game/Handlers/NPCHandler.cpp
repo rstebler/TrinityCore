@@ -73,6 +73,13 @@ void WorldSession::HandleTabardVendorActivateOpcode(WorldPackets::NPC::Hello& pa
     SendTabardVendorActivate(packet.Unit);
 }
 
+void WorldSession::SendShowAdventureMap(ObjectGuid guid)
+{
+    WorldPackets::NPC::ShowAdventureMap packet;
+    packet.Guid = guid;
+    SendPacket(packet.Write());
+}
+
 void WorldSession::SendTabardVendorActivate(ObjectGuid guid)
 {
     WorldPackets::NPC::PlayerTabardVendorActivate packet;
@@ -274,7 +281,13 @@ void WorldSession::SendTrainerBuyFailed(ObjectGuid trainerGUID, uint32 spellID, 
 
 void WorldSession::HandleGossipHelloOpcode(WorldPackets::NPC::Hello& packet)
 {
-    Creature* unit = GetPlayer()->GetNPCIfCanInteractWith(packet.Unit, UNIT_NPC_FLAG_GOSSIP);
+    Creature* unit = GetPlayer()->GetNPCIfCanInteractWith(packet.Unit, UNIT_NPC_FLAG_GARRISON_MISSION_NPC);
+    if (unit)
+    {
+        SendShowAdventureMap(packet.Unit);
+        return;
+    }
+    unit = GetPlayer()->GetNPCIfCanInteractWith(packet.Unit, UNIT_NPC_FLAG_GOSSIP);
     if (!unit)
     {
         TC_LOG_DEBUG("network", "WORLD: HandleGossipHelloOpcode - %s not found or you can not interact with him.", packet.Unit.ToString().c_str());
