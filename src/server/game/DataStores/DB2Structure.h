@@ -45,6 +45,35 @@ struct AchievementEntry
     uint32 IconFileDataID;
 };
 
+struct AdventureJournalEntry
+{
+    uint32 ID;
+    LocalizedString* Name;
+    LocalizedString* Description;
+    LocalizedString* ButtonText;
+    uint32 Icon;
+    uint32 RewardItemID;
+    LocalizedString* Unk1;
+    LocalizedString* Unk2;
+    uint16 LFGDungeonID;
+    uint16 QuestID;
+    uint16 Unk3;
+    uint16 PlayerConditionID2;
+    uint16 PlayerConditionID3;
+    uint16 CurrencyID;
+    uint16 WorldMapAreaID;
+    uint8 Unk4;
+    uint8 Unk5;
+    uint8 Type;
+    uint8 Unk6;
+    uint8 Unk7;
+    uint8 Unk8;
+    uint8 Unk9;
+    uint8 Unk10;
+    uint32 PlayerConditionID;
+    uint32 Unk11;
+};
+
 struct AnimKitEntry
 {
     uint32 ID;
