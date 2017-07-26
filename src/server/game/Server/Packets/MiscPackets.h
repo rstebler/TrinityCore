@@ -874,6 +874,16 @@ namespace WorldPackets
 
             void Read() override { }
         };
+
+        class AdventureJournalOpenQuest final : public ClientPacket
+        {
+        public:
+            AdventureJournalOpenQuest(WorldPacket&& packet) : ClientPacket(CMSG_ADVENTURE_JOURNAL_OPEN_QUEST, std::move(packet)) { }
+
+            void Read() override;
+
+            uint32 AdventureJournalID = 0;
+        };
     }
 }
 

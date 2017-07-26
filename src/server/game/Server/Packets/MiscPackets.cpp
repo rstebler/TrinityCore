@@ -662,3 +662,8 @@ void WorldPackets::Misc::MountSetFavorite::Read()
     _worldPacket >> MountSpellID;
     IsFavorite = _worldPacket.ReadBit();
 }
+
+void WorldPackets::Misc::AdventureJournalOpenQuest::Read()
+{
+    _worldPacket >> AdventureJournalID;
+}

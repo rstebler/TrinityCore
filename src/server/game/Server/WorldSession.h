@@ -466,6 +466,7 @@ namespace WorldPackets
         class SetTaxiBenchmarkMode;
         class MountSetFavorite;
         class PvpPrestigeRankUp;
+        class AdventureJournalOpenQuest;
     }
 
     namespace Movement
@@ -1711,6 +1712,9 @@ class TC_GAME_API WorldSession
 
         // Honor
         void HandlePvpPrestigeRankUp(WorldPackets::Misc::PvpPrestigeRankUp& /*pvpPrestigeRankUp*/);
+
+        void HandleAdventureJournalOpenQuestOpcode(WorldPackets::Misc::AdventureJournalOpenQuest& adventureJournalOpenQuest);
+
 
         union ConnectToKey
         {

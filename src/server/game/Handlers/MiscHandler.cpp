@@ -1168,3 +1168,23 @@ void WorldSession::HandlePvpPrestigeRankUp(WorldPackets::Misc::PvpPrestigeRankUp
     if (_player->CanPrestige())
         _player->Prestige();
 }
+
+void WorldSession::HandleAdventureJournalOpenQuestOpcode(WorldPackets::Misc::AdventureJournalOpenQuest& adventureJournalOpenQuest)
+{
+    if (AdventureJournalEntry const* adventureJournalEntry = sAdventureJournalStore.LookupEntry(adventureJournalOpenQuest.AdventureJournalID))
+    {
+        if (adventureJournalEntry->Type != ADVENTURE_JOURNAL_TYPE_QUEST)
+            return;
+
+        if (Quest const* quest = sObjectMgr->GetQuestTemplate(adventureJournalEntry->QuestID))
+        {
+            if (!_player->CanTakeQuest(quest, true))
+                return;
+
+            if (quest->IsAutoAccept() && _player->CanAddQuest(quest, false))
+                _player->AddQuestAndCheckCompletion(quest, _player);
+
+            _player->PlayerTalkClass->SendQuestGiverQuestDetails(quest, _player->GetGUID(), true);
+        }
+    }
+}
