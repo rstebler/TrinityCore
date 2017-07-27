@@ -124,8 +124,16 @@ void WorldSession::HandleQuestgiverAcceptQuestOpcode(WorldPackets::Quest::QuestG
 
     if (Player* playerQuestObject = object->ToPlayer())
     {
-        if ((_player->GetDivider().IsEmpty() && _player->GetDivider() != packet.QuestGiverGUID) || !playerQuestObject->CanShareQuest(packet.QuestID))
+        bool isAdventureJournalQuest = false;
+        for (DBStorageIterator<AdventureJournalEntry> itr = sAdventureJournalStore.begin(); itr != sAdventureJournalStore.end(); ++itr)
         {
+            if (itr->Type == ADVENTURE_JOURNAL_TYPE_QUEST && itr->QuestID == packet.QuestID)
+            {
+                isAdventureJournalQuest = true;
+                break;
+            }
+        }
+        if (!isAdventureJournalQuest && ((_player->GetDivider().IsEmpty() && _player->GetDivider() != packet.QuestGiverGUID) || !playerQuestObject->CanShareQuest(packet.QuestID))) {
             CLOSE_GOSSIP_CLEAR_DIVIDER();
             return;
         }
