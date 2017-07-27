@@ -51,6 +51,43 @@ struct AchievementLoadInfo
     }
 };
 
+struct AdventureJournalLoadInfo
+{
+    static DB2LoadInfo const* Instance()
+    {
+        static DB2FieldMeta const fields[] =
+        {
+            { false, FT_INT, "ID" },
+            { false, FT_STRING, "Name" },
+            { false, FT_STRING, "Description" },
+            { false, FT_STRING, "ButtonText" },
+            { false, FT_INT, "Icon" },
+            { false, FT_INT, "RewardItemID" },
+            { false, FT_STRING, "Unk1" },
+            { false, FT_STRING, "Unk2" },
+            { false, FT_SHORT, "PlayerConditionID" },
+            { false, FT_SHORT, "LFGDungeonID" },
+            { false, FT_SHORT, "QuestID" },
+            { false, FT_SHORT, "PlayerConditionID2" },
+            { false, FT_SHORT, "PlayerConditionID3" },
+            { false, FT_SHORT, "CurrencyID" },
+            { false, FT_SHORT, "WorldMapAreaID" },
+            { false, FT_BYTE, "Unk3" },
+            { false, FT_BYTE, "Unk4" },
+            { false, FT_BYTE, "Type" },
+            { false, FT_BYTE, "Unk5" },
+            { false, FT_BYTE, "Unk6" },
+            { false, FT_BYTE, "Unk7" },
+            { false, FT_BYTE, "Unk8" },
+            { false, FT_BYTE, "Unk9" },
+            { false, FT_BYTE, "Unk10" },
+            { false, FT_BYTE, "Unk11" },
+        };
+        static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, AdventureJournalMeta::Instance(), HOTFIX_SEL_ADVENTURE_JOURNAL);
+        return &loadInfo;
+    }
+};
+
 struct AnimKitLoadInfo
 {
     static DB2LoadInfo const* Instance()
