@@ -83,7 +83,7 @@ struct AdventureJournalLoadInfo
             { false, FT_INT, "PlayerConditionID" },
             { false, FT_INT, "Unk11" },
         };
-        static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, AdventureJournalMeta::Instance(), HOTFIX_SEL_ACHIEVEMENT);
+        static DB2LoadInfo const loadInfo(&fields[0], std::extent<decltype(fields)>::value, AdventureJournalMeta::Instance(), HOTFIX_SEL_ADVENTURE_JOURNAL);
         return &loadInfo;
     }
 };
