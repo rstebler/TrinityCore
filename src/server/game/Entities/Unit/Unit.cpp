@@ -12810,9 +12810,9 @@ float Unit::MeleeSpellMissChance(const Unit* victim, WeaponAttackType attType, u
     return missChance;
 }
 
-bool Unit::SetInPhase(uint32 id, bool update, bool apply)
+bool Unit::SetInPhase(uint32 id, bool update, bool apply, bool allowForceRemove /*= false*/)
 {
-    bool res = WorldObject::SetInPhase(id, update, apply);
+    bool res = WorldObject::SetInPhase(id, update, apply, allowForceRemove);
 
     if (!IsInWorld())
         return res;
@@ -12850,12 +12850,12 @@ bool Unit::SetInPhase(uint32 id, bool update, bool apply)
 
     for (ControlList::const_iterator itr = m_Controlled.begin(); itr != m_Controlled.end(); ++itr)
         if ((*itr)->GetTypeId() == TYPEID_UNIT)
-            (*itr)->SetInPhase(id, true, apply);
+            (*itr)->SetInPhase(id, true, apply, allowForceRemove);
 
     for (uint8 i = 0; i < MAX_SUMMON_SLOT; ++i)
         if (!m_SummonSlot[i].IsEmpty())
             if (Creature* summon = GetMap()->GetCreature(m_SummonSlot[i]))
-                summon->SetInPhase(id, true, apply);
+                summon->SetInPhase(id, true, apply, allowForceRemove);
 
     RemoveNotOwnSingleTargetAuras(0, true);
 

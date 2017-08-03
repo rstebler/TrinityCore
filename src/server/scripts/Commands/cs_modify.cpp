@@ -1061,7 +1061,7 @@ public:
         if (!target)
             target = handler->GetSession()->GetPlayer();
 
-        target->SetInPhase(phaseId, true, !target->IsInPhase(phaseId));
+        target->SetInPhase(phaseId, true, !target->IsInPhase(phaseId), true);
 
         if (target->GetTypeId() == TYPEID_PLAYER)
             target->ToPlayer()->SendUpdatePhasing();
