@@ -3086,6 +3086,7 @@ bool SpellInfo::_IsPositiveEffect(uint32 effIndex, bool deep) const
                 case 61819: // Manabonked! (item)
                 case 61834: // Manabonked! (minigob)
                 case 73523: // Rigor Mortis
+                case 228290: // Personal Egg
                     return true;
                 default:
                     break;
