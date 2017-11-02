@@ -2600,7 +2600,7 @@ void FillDisenchantFields(uint32* disenchantID, uint32* requiredDisenchantSkill,
         itemTemplate.GetBonding() == BIND_QUEST || itemTemplate.GetArea() || itemTemplate.GetMap() ||
         itemTemplate.GetMaxStackSize() > 1 ||
         itemTemplate.GetQuality() < ITEM_QUALITY_UNCOMMON || itemTemplate.GetQuality() > ITEM_QUALITY_EPIC ||
-        !(itemTemplate.GetClass() == ITEM_CLASS_ARMOR || itemTemplate.GetClass() == ITEM_CLASS_WEAPON) ||
+        !(itemTemplate.GetClass() == ITEM_CLASS_ARMOR || itemTemplate.GetClass() == ITEM_CLASS_WEAPON || (itemTemplate.GetClass() == ITEM_CLASS_QUEST && (itemTemplate.GetFlags2() & ITEM_FLAG2_DISENCHANT_TO_LOOT_TABLE))) ||
         !(Item::GetSpecialPrice(&itemTemplate) || sDB2Manager.HasItemCurrencyCost(itemTemplate.GetId())))
         return;
 

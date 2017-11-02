@@ -6487,7 +6487,7 @@ SpellCastResult Spell::CheckItems()
                     return SPELL_FAILED_LOW_CASTLEVEL;
                 if (item_quality > 4 || item_quality < 2)
                     return SPELL_FAILED_CANT_BE_DISENCHANTED;
-                if (itemProto->GetClass() != ITEM_CLASS_WEAPON && itemProto->GetClass() != ITEM_CLASS_ARMOR)
+                if (itemProto->GetClass() != ITEM_CLASS_WEAPON && itemProto->GetClass() != ITEM_CLASS_ARMOR && (itemProto->GetClass() != ITEM_CLASS_QUEST || !(itemProto->GetFlags2() & ITEM_FLAG2_DISENCHANT_TO_LOOT_TABLE)))
                     return SPELL_FAILED_CANT_BE_DISENCHANTED;
                 if (!itemProto->DisenchantID)
                     return SPELL_FAILED_CANT_BE_DISENCHANTED;
