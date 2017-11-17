@@ -14707,6 +14707,9 @@ bool Player::CanRewardQuest(Quest const* quest, bool msg)
             if (obj.Type != QUEST_OBJECTIVE_ITEM)
                 continue;
 
+            if (obj.Flags & QUEST_OBJECTIVE_FLAG_OPTIONAL)
+                continue;
+
             if (GetItemCount(obj.ObjectID) < uint32(obj.Amount))
             {
                 if (msg)
