@@ -12147,13 +12147,24 @@ void Unit::KnockbackFrom(float x, float y, float speedXY, float speedZ, Movement
 
         if (std::fabs(dx) < 0.001f && std::fabs(dy) < 0.001f)
         {
-            float angle = GetOrientation() + float(M_PI);
+            float angle = GetOrientation();
+            if (speedXY >= 0)
+                angle += float(M_PI);
             vcos = std::cos(angle);
             vsin = std::sin(angle);
         }
         else
-            GetSinCos(x, y, vsin, vcos);
-        SendMoveKnockBack(player, speedXY, -speedZ, vcos, vsin);
+        {
+            float dist = std::sqrt((dx*dx) + (dy*dy));
+            vcos = dx / dist;
+            vsin = dy / dist;
+            if (speedXY < 0)
+            {
+                vcos = -vcos;
+                vsin = -vsin;
+            }
+        }
+        SendMoveKnockBack(player, std::fabs(speedXY), -speedZ, vcos, vsin);
     }
 }
 
