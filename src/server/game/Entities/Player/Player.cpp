@@ -15284,6 +15284,8 @@ void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, 
         }
     }
 
+    if (quest->GetZoneOrSort() == -380)
+        UpdateCriteria(CRITERIA_TYPE_COMPLETE_QUESTS_IN_ZONE, 33);
     if (quest->GetZoneOrSort() > 0)
         UpdateCriteria(CRITERIA_TYPE_COMPLETE_QUESTS_IN_ZONE, quest->GetZoneOrSort());
     UpdateCriteria(CRITERIA_TYPE_COMPLETE_QUEST_COUNT);

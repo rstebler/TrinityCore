@@ -593,6 +593,8 @@ void CriteriaHandler::UpdateCriteria(CriteriaTypes type, uint64 miscValue1 /*= 0
                 for (RewardedQuestSet::const_iterator itr = rewQuests.begin(); itr != rewQuests.end(); ++itr)
                 {
                     Quest const* quest = sObjectMgr->GetQuestTemplate(*itr);
+                    if (quest && quest->GetZoneOrSort() == -380 && criteria->Entry->Asset.ZoneID == 33)
+                        ++counter;
                     if (quest && quest->GetZoneOrSort() >= 0 && uint32(quest->GetZoneOrSort()) == criteria->Entry->Asset.ZoneID)
                         ++counter;
                 }
