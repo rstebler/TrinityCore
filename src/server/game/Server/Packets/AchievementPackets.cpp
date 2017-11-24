@@ -67,14 +67,7 @@ WorldPacket const* WorldPackets::Achievement::AllAccountCriteria::Write()
 
     for (CriteriaProgress const& criteria : Progress)
     {
-        _worldPacket << uint32(criteria.Id);
-        _worldPacket << uint64(criteria.Quantity);
-        _worldPacket << criteria.Player;
-        _worldPacket.AppendPackedTime(criteria.Date);
-        _worldPacket << uint32(criteria.TimeFromStart);
-        _worldPacket << uint32(criteria.TimeFromCreate);
-        _worldPacket.WriteBits(criteria.Flags, 4);
-        _worldPacket.FlushBits();
+        _worldPacket << criteria;
     }
 
     return &_worldPacket;
