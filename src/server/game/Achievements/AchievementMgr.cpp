@@ -413,6 +413,27 @@ void PlayerAchievementMgr::SendAllData(Player const* /*receiver*/) const
     SendPacket(achievementData.Write());
 }
 
+void PlayerAchievementMgr::SendAllAccountCriteria(Player const* /*receiver*/) const
+{
+    WorldPackets::Achievement::AllAccountCriteria accountCriteria;
+    accountCriteria.Progress.reserve(_criteriaProgress.size());
+
+    for (auto itr = _criteriaProgress.begin(); itr != _criteriaProgress.end(); ++itr)
+    {
+        WorldPackets::Achievement::CriteriaProgress progress;
+        progress.Id = itr->first;
+        progress.Quantity = itr->second.Counter;
+        progress.Player = itr->second.PlayerGUID;
+        progress.Flags = 1;
+        progress.Date = itr->second.Date;
+        progress.TimeFromStart = 0;
+        progress.TimeFromCreate = 0;
+        accountCriteria.Progress.push_back(progress);
+    }
+
+    SendPacket(accountCriteria.Write());
+}
+
 void PlayerAchievementMgr::SendAchievementInfo(Player* receiver, uint32 /*achievementId = 0 */) const
 {
     VisibleAchievementCheck filterInvisible;

@@ -61,6 +61,25 @@ WorldPacket const* WorldPackets::Achievement::AllAchievementData::Write()
     return &_worldPacket;
 }
 
+WorldPacket const* WorldPackets::Achievement::AllAccountCriteria::Write()
+{
+    _worldPacket << uint32(Progress.size());
+
+    for (CriteriaProgress const& criteria : Progress)
+    {
+        _worldPacket << uint32(criteria.Id);
+        _worldPacket << uint64(criteria.Quantity);
+        _worldPacket << criteria.Player;
+        _worldPacket.AppendPackedTime(criteria.Date);
+        _worldPacket << uint32(criteria.TimeFromStart);
+        _worldPacket << uint32(criteria.TimeFromCreate);
+        _worldPacket.WriteBits(criteria.Flags, 4);
+        _worldPacket.FlushBits();
+    }
+
+    return &_worldPacket;
+}
+
 WorldPacket const* WorldPackets::Achievement::RespondInspectAchievements::Write()
 {
     _worldPacket << Player;

@@ -61,6 +61,16 @@ namespace WorldPackets
             AllAchievements Data;
         };
 
+        class AllAccountCriteria final : public ServerPacket
+        {
+        public:
+            AllAccountCriteria() : ServerPacket(SMSG_ALL_ACCOUNT_CRITERIA) { }
+
+            WorldPacket const* Write() override;
+
+            std::vector<CriteriaProgress> Progress;
+        };
+
         class RespondInspectAchievements final : public ServerPacket
         {
         public:

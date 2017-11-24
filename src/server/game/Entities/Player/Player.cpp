@@ -23517,6 +23517,7 @@ void Player::SendInitialPacketsBeforeAddToMap()
     SendEquipmentSetList();
 
     m_achievementMgr->SendAllData(this);
+    m_achievementMgr->SendAllAccountCriteria(this);
     m_questObjectiveCriteriaMgr->SendAllData(this);
 
     /// SMSG_LOGIN_SETTIMESPEED
