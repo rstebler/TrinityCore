@@ -1905,6 +1905,19 @@ void GameObject::Use(Unit* user)
             player->SendDirectMessage(artifactForgeOpened.Write());
             return;
         }
+        case GAMEOBJECT_TYPE_GATHERING_NODE:                // 50
+        {
+            GameObjectTemplate const* info = GetGOInfo();
+
+            if (uint32 trapEntry = info->gatheringNode.linkedTrap)
+                TriggeringLinkedGameObject(trapEntry, user);
+
+            // cast this spell later if provided
+            spellId = info->gatheringNode.spell;
+            spellCaster = nullptr;
+
+            break;
+        }
         default:
             if (GetGoType() >= MAX_GAMEOBJECT_TYPE)
                 TC_LOG_ERROR("misc", "GameObject::Use(): unit (type: %u, %s, name: %s) tries to use object (%s, name: %s) of unknown type (%u)",
