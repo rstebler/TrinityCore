@@ -1914,8 +1914,6 @@ void GameObject::Use(Unit* user)
 
             // cast this spell later if provided
             spellId = info->gatheringNode.spell;
-            spellCaster = nullptr;
-
             break;
         }
         default:
