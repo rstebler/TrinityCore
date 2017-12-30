@@ -1890,7 +1890,8 @@ void Spell::EffectSummonChangeItem(SpellEffIndex /*effIndex*/)
             m_castItemEntry = 0;
             m_castItemLevel = -1;
 
-            player->StoreItem(dest, pNewItem, true);
+            if (Item const* storedItem = player->StoreItem(dest, pNewItem, true))
+                player->ItemAddedQuestCheck(storedItem->GetEntry(), storedItem->GetCount());
             return;
         }
     }
