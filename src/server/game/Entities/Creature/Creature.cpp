@@ -1226,13 +1226,19 @@ void Creature::UpdateLevelDependantStats()
     uint32 mana = stats->GenerateMana(cInfo);
     SetCreateMana(mana);
 
+    // power
+    int32 rage = 0;
+    int32 energy = 0;
+
     switch (getClass())
     {
         case CLASS_WARRIOR:
             setPowerType(POWER_RAGE);
+            rage = GetMaxPower(POWER_RAGE);
             break;
         case CLASS_ROGUE:
             setPowerType(POWER_ENERGY);
+            energy = GetMaxPower(POWER_ENERGY);
             break;
         default:
             SetMaxPower(POWER_MANA, mana); // MAX Mana
@@ -1242,6 +1248,8 @@ void Creature::UpdateLevelDependantStats()
 
     SetModifierValue(UNIT_MOD_HEALTH, BASE_VALUE, (float)health);
     SetModifierValue(UNIT_MOD_MANA, BASE_VALUE, (float)mana);
+    SetModifierValue(UNIT_MOD_RAGE, BASE_VALUE, (float)rage);
+    SetModifierValue(UNIT_MOD_ENERGY, BASE_VALUE, (float)energy);
 
     // damage
 
