@@ -15085,6 +15085,9 @@ void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, 
             case QUEST_OBJECTIVE_CURRENCY:
                 ModifyCurrency(obj.ObjectID, -int32(obj.Amount), false, true);
                 break;
+            case QUEST_OBJECTIVE_MONEY:
+                ModifyMoney(-int64(obj.Amount));
+                break;
         }
     }
 
